@@ -1,0 +1,21 @@
+2.2.1 定义
+
+形式的定义：
+( define ‹id› ‹expr› )
+绑定‹id›到‹expr›的结果，而
+( define ( ‹id› ‹id›* ) ‹expr›+ )
+绑定第一个‹ID›到一个函数（也叫程序），以参数作为命名‹ID›，对函数的实例，该‹expr›是函数的函数体。当函数被调用时，它返回最后一个‹expr›的结果。
+
+例子：
+(define pie 3)             ; 定义 pie 为 3
+ 
+(define (piece str)        ; 定义 piece 为一个有一个参数的函数
+  (substring str 0 pie))   ;  
+ 
+> pie
+
+3
+> (piece "key lime")
+
+"key"
+
