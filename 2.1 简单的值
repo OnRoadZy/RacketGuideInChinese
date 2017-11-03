@@ -17,3 +17,10 @@ Racket值包括数字、布尔值、字符串和字节字符串。DrRacket和文
 "Benjamin \"Bugsy\" Siegel"
 "λx:(μα.α→α).xx"
 当一个常量在REPL中被评估，通常它的打印结果与输入的语法相同。在某些情况下，打印格式是输入语法的标准化版本。在文档和DrRacket REPL中，结果打印为蓝色而不是绿色以强调打印结果与输入表达式之间的区别。
+比如：
+
+> 1.0000
+1.0
+
+> "Bugs \u0022Figaro\u0022 Bunny"
+"Bugs \"Figaro\" Bunny"
