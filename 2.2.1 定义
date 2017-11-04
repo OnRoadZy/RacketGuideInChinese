@@ -1,6 +1,6 @@
 2.2.1 定义
 
-形式的定义：
+表的定义：
 ( define ‹id› ‹expr› )
 绑定‹id›到‹expr›的结果，而
 ( define ( ‹id› ‹id›* ) ‹expr›+ )
@@ -10,12 +10,10 @@
 (define pie 3)             ; 定义 pie 为 3
  
 (define (piece str)        ; 定义 piece 为一个有一个参数的函数
-  (substring str 0 pie))   ;  
+  (substring str 0 pie))
  
 > pie
-
 3
 > (piece "key lime")
-
 "key"
 
