@@ -17,3 +17,31 @@
 > (piece "key lime")
 "key"
 
+在封装下，函数定义实际上与非函数定义相同，函数名不需要在函数调用中使用。函数只是另一种类型的值，尽管打印形式必须比数字或字符串的打印形式更不完整。
+
+例子：
+> piece
+#<procedure:piece>
+> substring
+#<procedure:substring>
+
+函数定义可以包含函数体的多个表达式。在这种情况下，在调用函数时只返回最后一个表达式的值。其他表达式只对一些副作用进行求值，比如打印这些。
+
+例子：
+(define (bake flavor)
+  (printf "pre-heating oven...\n")
+  (string-append flavor " pie"))
+ 
+> (bake "apple")
+pre-heating oven...
+"apple pie"
+
+Racket程序员更喜欢避免副作用，所以一个定义通常只有一个表达式。这是重要的，但是，了解多个表达式在定义体内是被允许的，因为它解释了为什么以下nobake函数未在其结果中包含它的参数：
+
+(define (nobake flavor)
+  string-append flavor "jello")
+ 
+> (nobake "green")
+"jello"
+
+在nobake，没有括号包括string-append给"jello"，那么他们是三个单独的表达而不是函数调用表达式。string-append表达式和flavor被求值，但结果没有被使用。相反，该函数的结果是最终的表达式"jello"。
