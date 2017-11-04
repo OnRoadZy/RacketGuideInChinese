@@ -1,0 +1,25 @@
+1.3 创建可执行文件
+
+如果你的文件（或在DrRacket的定义区域）包含：
+
+#lang racket
+ 
+(define (extract str)
+  (substring str 4 7))
+ 
+(extract "the cat out of the bag")
+
+那么它是一个在运行时打印“cat” 的完整的程序。你可以在DrRacket中运行程序或使用在racket中使用enter!，但如果程序被保存在‹src-filename›中，你也可以从命令行运行
+
+racket ‹src-filename›
+
+将程序打包为可执行文件，您有几个选项：
+*在DrRacket，你可以选择Racket|Create Executable...菜单项。
+*从命令提示符，运行raco exe ‹src-filename›，这里‹src-filename›包含程序。（参见《raco exe: Creating Stand-Alone Executables 》部分获取更多信息。）
+*在UNIX或Mac OS中，可以通过在文件的开头插入以下行将程序文件转换为可执行脚本：
+
+ #! /usr/bin/env racket
+ 
+同时，在命令行中用chmod +x ‹filename› 改变文件权限去执行。
+ 
+只要racket在用户的可执行搜索路径中脚本就会工作。另外，在#!后使用完整路径提交给racket（在#!和路径之间有空格），在这种情况下用户的可执行搜索路径无关紧要。
