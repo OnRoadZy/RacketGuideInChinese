@@ -1,0 +1,16 @@
+1.4 给有LISP/Scheme经验的读者的一个说明
+
+如果你已经知道一些关于Scheme或Lisp的东西，你可能会试图这样将
+
+(define (extract str)
+  (substring str 4 7))
+  
+放入"extract.rktl"并且如下运行racket
+
+> (load "extract.rktl")
+> (extract "the dog out")
+"dog"
+
+这将起作用，因为racket愿意模仿传统的Lisp环境，但我们强烈建议不要在模块之外使用load或编写程序。
+
+在模块之外编写定义会导致糟糕的错误消息、差的性能和笨拙的脚本来组合和运行程序。这些问题并不是特别针对racket，它们是传统顶层环境的根本限制，Scheme和Lisp实现在历史上与临时命令行标志、编译器指令和构建工具进行了斗争。模块系统的设计是为了避免这些问题，所以以#lang开始，你会与Racket在长期运作中更愉快。
