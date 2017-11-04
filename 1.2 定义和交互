@@ -1,1 +1,28 @@
-待续……
+1.2 定义和交互
+
+你可以通过使用define表像substring那样定义自己的功能，像这样：
+
+(define (extract str)
+  (substring str 4 7))
+
+> (extract "the boy out of the country")
+"boy"
+> (extract "the country out of the boy")
+"cou"
+
+虽然你可以在REPL求值这个define表，但定义通常是你要保持并今后使用一个程序的一部分。所以，在DrRacket中，你通常会把定义放在顶部的文本区——被称作定义区——随着#lang前缀一起：
+
+#lang racket
+
+(define (extract str)
+  (substring str 4 7))
+  
+如果调用(extract "the boy")是程序的主要行为的一部分，那么它也将进入定义区域。但如果这只是一个例子，你用来测试extract，那么你会更容易如上面那样离开定义区域，点击“运行”（Run），然后将在REPL中求值(extract "the boy")。
+
+当使用命令行的racket代替DrRacket，你会在一个文件中用你喜欢的编辑器保存上面的文本。如果你将它保存为“extract.rkt”，然后在同一目录开始racket，你会对以下序列求值：
+
+(enter! "extract.rkt")
+> (extract "the gal out of the city")
+"gal"
+
+enter!表加载代码和开关的求值语境到模块里面，就像DrRacket的运行按钮一样。
