@@ -1,3 +1,14 @@
 2.2.3 标识符
 
 Racket的标识符语法特别自由。不含特殊字符。
+
+ ( ) [ ] { } " , ' ` ; # | \
+
+除了文字，使常数数字序列，几乎任何非空白字符序列形成一个‹ID›。例如，substring是一个标识符。另外，string-append和a+b是标识符，而不是算术表达式。这里还有几个例子：
+
++
+Hfuhruhurr
+integer?
+pass/fail
+john-jacob-jingleheimer-schmidt
+a-b-c+1-2-3
