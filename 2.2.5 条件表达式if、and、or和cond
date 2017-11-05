@@ -1,0 +1,104 @@
+2.2.5 条件表达式if、and、or和cond
+
+以下是一个最简单的表达式是if条件：
+
+( if ‹expr› ‹expr› ‹expr› )
+
+第一‹expr›总是被求值。如果它产生一个非#f值，那么第二个‹expr›被求值并作为整个if表达式的结果，否则第三‹expr›被求值并作为结果。
+
+例如：
+
+    > (if (> 2 3)
+          "bigger"
+          "smaller")
+          
+    "smaller"
+
+    (define (reply s)
+      (if (equal? "hello" (substring s 0 5))
+          "hi!"
+          "huh?"))
+     
+    > (reply "hello racket")
+    "hi!"
+    > (reply "λx:(μα.α→α).xx")
+    "huh?"
+    
+复杂的条件可以由嵌套的if表达式构成。例如，当给定非字符串时，可以使reply函数工作：
+
+(define (reply s)
+  (if (string? s)
+      (if (equal? "hello" (substring s 0 5))
+          "hi!"
+          "huh?")
+      "huh?"))
+      
+而不是复制 "huh?"事例，这个函数这样写会更好：
+
+(define (reply s)
+  (if (if (string? s)
+          (equal? "hello" (substring s 0 5))
+          #f)
+      "hi!"
+      "huh?"))
+
+是这些嵌套的if很难读。Racket通过and和or表提供了更多的更易读的快捷表示，它可以和任意数量的表达式搭配：
+
+( and ‹expr›* )
+( or ‹expr›* )
+
+and表中断情况：当表达式返回#f，它停止并返回#f，否则它会运行。or表遇到一个真的结果时，同样的产生中断情况。
+
+例子：
+(define (reply s)
+  (if (and (string? s)
+           (>= (string-length s) 5)
+           (equal? "hello" (substring s 0 5)))
+      "hi!"
+      "huh?"))
+ 
+> (reply "hello racket")
+"hi!"
+> (reply 17)
+"huh?"
+
+嵌套if的另一种常见模式是一个序列测试，每个测试都有自己的结果：
+
+(define (reply-more s)
+  (if (equal? "hello" (substring s 0 5))
+      "hi!"
+      (if (equal? "goodbye" (substring s 0 7))
+          "bye!"
+          (if (equal? "?" (substring s (- (string-length s) 1)))
+              "I don't know"
+              "huh?"))))
+
+对一个序列的测试的快捷形式是cond表：
+
+( cond {[ ‹expr› ‹expr›* ]}* )
+
+一个cond表包含了括号之间的一个序列的分句表。在每一个分句表，第一‹expr›是测试表达式。如果它产生真，那么剩下的‹expr›分句表被求值，并在这些分句表的最后一个提供整个cond表达结果，同时其余的分句表被忽略。如果测试‹expr›产生#f，那么分句表剩余的‹expr›被忽视，并继续下一个分句表求值。最后一项分句表可以使用else作为一个#t测试表达式的相同意义。
+
+使用cond，reply-more函数可以更清楚地写成如下形式：
+
+(define (reply-more s)
+  (cond
+   [(equal? "hello" (substring s 0 5))
+    "hi!"]
+   [(equal? "goodbye" (substring s 0 7))
+    "bye!"]
+   [(equal? "?" (substring s (- (string-length s) 1)))
+    "I don't know"]
+   [else "huh?"]))
+
+ 
+> (reply-more "hello racket")
+"hi!"
+> (reply-more "goodbye cruel world")
+"bye!"
+> (reply-more "what is your favorite color?")
+"I don't know"
+> (reply-more "mine is lime green")
+"huh?"
+
+对于cond从句表的方括号的使用是一种惯例。在Racket中，圆括号和方括号实际上是可互换的，只要（匹配）或[匹配]即可。在一些关键的地方使用方括号可以使Racket代码更易读。
