@@ -1,0 +1,29 @@
+2.2.6 函数重复调用
+
+在我们早期的函数语法调用，我们是过分简单化的。一个函数调用的语法允许任意的函数表达式，而不是一个‹ID›：
+
+( ‹expr› ‹expr›* )
+
+第一‹expr›常常是一个‹ID›，比如string-append或+，但它可以是对一个函数的求值的任意情况。例如，它可以是一个条件表达式：
+
+(define (double v)
+  ((if (string? v) string-append +) v v))
+ 
+> (double "mnah")
+"mnahmnah"
+> (double 5)
+10
+
+在语法上，在一个函数调用的第一个表达甚至可以是一个数——但那会导致一个错误，因为一个数不是一个函数。
+
+> (1 2 3 4)
+
+application: not a procedure;
+ expected a procedure that can be applied to arguments
+  given: 1
+  arguments...:
+   2
+   3
+   4
+
+当您意外地忽略函数名或在表达式中使用额外的括号时，你通常会得到像这样“expected a procedure”的错误。
