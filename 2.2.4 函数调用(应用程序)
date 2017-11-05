@@ -1,0 +1,44 @@
+2.2.4 函数调用(应用程序)
+
+我们已经看到过许多函数调用，更传统的术语称之为过程应用程序。函数调用的语法是：
+
+( ‹id› ‹expr›* )
+
+‹expr›决定了‹ID›命名函数提供的参数个数。
+
+racket语言预定义了许多函数标识符，比如substring和string-append。下面有更多的例子。
+
+Racket代码例子贯穿整个文档，预定义的名称的使用链接到参考手册。因此，你可以单击标识符来获得关于其使用的详细信息。
+
+> (string-append "rope" "twine" "yarn")  ; append strings
+"ropetwineyarn"
+> (substring "corduroys" 0 4)            ; extract a substring
+"cord"
+> (string-length "shoelace")             ; get a string's length
+8
+> (string? "Ceci n'est pas une string.") ; recognize strings
+#t
+> (string? 1)
+#f
+> (sqrt 16)                              ; find a square root
+4
+> (sqrt -16)
+0+4i
+> (+ 1 2)                                ; add numbers
+3
+> (- 2 1)                                ; subtract numbers
+1
+> (< 2 1)                                ; compare numbers
+#f
+> (>= 2 1)
+#t
+> (number? "c'est une number")           ; recognize numbers
+#f
+> (number? 1)
+#t
+> (equal? 6 "half dozen")                ; compare anything
+#f
+> (equal? 6 6)
+#t
+> (equal? "half dozen" "half dozen")
+#t
