@@ -1,9 +1,83 @@
 2.2.7 匿名函数与lambda
 
-如果你必须命名你所有的数值，那Racket的编程就太乏味了。替换（+ 1 2）的写法，你必须这样写：
+如果你必须命名你所有的数值，那Racket的编程就太乏味了。替换（+ 1 2）的写法，你得这样写：
 
 > (define a 1)
 > (define b 2)
 > (+ a b)
 3
+
+事实证明，要命名所有函数也可能很乏味。例如，您可能有个函数twice，带了一个函数和一个参数。如果你已经有了函数的名字那么使用twice是比较方便的，如：
+
+(define (twice f v)
+  (f (f v)))
+
+> (twice sqrt 16)
+2
+
+如果您想调用尚未定义的函数，您可以定义它，然后将其传递给twice：
+
+(define (louder s)
+  (string-append s "!"))
+
+ 
+> (twice louder "hello")
+"hello!!"
+
+但是如果对twice的调用是唯一使用louder的地方，却还要写一个完整的定义是很可惜的。在Racket中，可以使用lambda表达式直接生成函数。lambda表后面是函数参数的标识符，然后是函数的体表达式：
+
+( lambda ( ‹id›* ) ‹expr›+ )
+
+求值lambda表本身即产生一个函数：
+
+> (lambda (s) (string-append s "!"))
+#<procedure>
+
+使用lambda，上述调用两次可以重写为：
+
+> (twice (lambda (s) (string-append s "!"))
+         "hello")
+"hello!!"
+
+> (twice (lambda (s) (string-append s "?!"))
+         "hello")
+"hello?!?!"
+
+lambda的另一个用途是作为生成函数的函数的结果：
+
+(define (make-add-suffix s2)
+  (lambda (s) (string-append s s2)))
+
+ 
+> (twice (make-add-suffix "!") "hello")
+"hello!!"
+
+> (twice (make-add-suffix "?!") "hello")
+"hello?!?!"
+
+> (twice (make-add-suffix "...") "hello")
+"hello......"
+
+Racket是一个词法作用域（lexically scoped）的语言，这意味着函数中的S2通过make-add-suffix总是指创建该函数调用的参数返回。换句话说，lambda生成的函数“记住”了右边的S2：
+
+> (define louder (make-add-suffix "!"))
+> (define less-sure (make-add-suffix "?"))
+> (twice less-sure "really")
+"really??"
+> (twice louder "really")
+"really!!"
+
+到目前为止我们已经提到了表（define ‹ID›‹expr›）的定义。作为“非函数的定义“。“这种表征是误导性的，因为‹expr›可以lambda形式，在这种情况下，定义是等效于使用“功能”的定义形式。例如，下面两个更响亮的定义是等价的：
+
+(define (louder s)
+  (string-append s "!"))
+ 
+(define louder
+  (lambda (s)
+    (string-append s "!")))
+ 
+> louder
+
+#<procedure:louder> 
+注意，第二种情况下更响亮的表达式是用lambda写成的“匿名”（anonymous）函数，但如果可能的话，编译器推断出一个名称，无论如何，使打印和错误报告尽可能地有信息。
 
