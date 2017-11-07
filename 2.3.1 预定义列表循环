@@ -1,0 +1,51 @@
+2.3.1 预定义列表循环
+
+除了像append这样的简单的操作，Racket还包括遍历列表元素的函数。这些迭代函数作用类似于java、Racket及其它语言里的for。Racket迭代的主体被打包成一个应用于每个元素的函数，所以lambda表在与迭代函数的组合中变得特别方便。
+
+不同的列表迭代函数以不同的方式组合迭代结果。map函数使用每个元素结果创建一个新的列表：
+
+> (map sqrt (list 1 4 9 16))
+'(1 2 3 4)
+
+> (map (lambda (i)
+         (string-append i "!"))
+       (list "peanuts" "popcorn" "crackerjack"))
+'("peanuts!" "popcorn!" "crackerjack!")
+
+andmap和ormap函数相结合，结果通过and或or决定：
+> (andmap string? (list "a" "b" "c"))
+#t
+
+> (andmap string? (list "a" "b" 6))
+#f
+
+> (ormap number? (list "a" "b" 6))
+#t
+
+ map、andmap和ormap函数都可以处理多个列表，而不只是一个单一的列表。列表必须具有相同的长度，并且给定的函数必须接受每个列表元素作为参数：
+ 
+ > (map (lambda (s n) (substring s 0 n))
+       (list "peanuts" "popcorn" "crackerjack")
+       (list 6 3 7))
+
+'("peanut" "pop" "cracker")
+
+ filter函数保持函数体结果是真的元素，并忽略是#f的元素：
+ 
+ > (filter string? (list "a" "b" 6))
+'("a" "b")
+
+> (filter positive? (list 1 -2 6 7 0))
+'(1 6 7)
+
+foldl函数包含某些迭代函数。它使用每个元素函数处理一个元素并将其与“当前”值相结合，因此每个元素函数接受额外的第一个参数。另外，在列表之前必须提供一个开始的“当前”值：
+
+> (foldl (lambda (elem v)
+           (+ v (* elem elem)))
+         0
+         '(1 2 3))
+14
+
+尽管有其共性，foldl不是像其它函数一样受欢迎。一个原因是map, ormap, andmap，和filter覆盖最常见的列表迭代。
+
+Racket为列表提供了一个通用的列表解析表for/list，它通过迭代序列建立一个列表。列表解析和相关迭代表将在迭代和解析（Iterations and Comprehensions）部分解释。
