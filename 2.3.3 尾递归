@@ -1,0 +1,56 @@
+2.3.3 尾递归
+
+前面my-length和my-map自定义函数都在O(n)的时间内运行一个n长度的列表。很显然能够想象(my-length (list "a" "b" "c"))必须如下求值：
+
+(my-length (list "a" "b" "c"))
+= (+ 1 (my-length (list "b" "c")))
+= (+ 1 (+ 1 (my-length (list "c"))))
+= (+ 1 (+ 1 (+ 1 (my-length (list)))))
+= (+ 1 (+ 1 (+ 1 0)))
+= (+ 1 (+ 1 1))
+= (+ 1 2)
+= 3
+
+对于带有n个元素的列表，求值将叠加n(+ 1…)，并且直到列表用完时最后才添加它们。
+
+您可以通过一路求和避免堆积添加。要以这种方式累积长度，我们需要一个函数，它既可以操作列表，也可以操作当前列表的长度；下面的代码使用一个局部函数iter，在一个参数len中累积长度：
+
+(define (my-length lst)
+  ; local function iter:
+  (define (iter lst len)
+    (cond
+     [(empty? lst) len]
+     [else (iter (rest lst) (+ len 1))]))
+  ; body of my-length calls iter:
+  (iter lst 0))
+  
+现在求值过程看起来像这样：
+(my-length (list "a" "b" "c"))
+= (iter (list "a" "b" "c") 0)
+= (iter (list "b" "c") 1)
+= (iter (list "c") 2)
+= (iter (list) 3)
+3
+
+修正后的my-length函数在恒定的空间中运行，正如上面的求值步骤所表明的那样。也就是说，当函数调用的结果，比如(iter (list "b" "c") 1)，确切地说是其他函数调用的结果，例如(iter (list "c") 2)，那么第一个函数不需要等待第二个函数回绕，因为那样会为了不恰当的原因占用空间。
+
+这种求值行为有时称为”尾部调用优化“，但它在Racket里不仅仅是一种“优化”，它是代码运行方式的保证。更确切地说，相对于另一表达式的尾部位置表达式在另一表达式上不占用额外的计算空间。
+
+在my-map例子中，O(n)空间复杂度是合理的，因为它必须生成O(n)的结果。不过，您可以通过累积结果列表来减少常数因子。唯一的问题是累积的列表将是向后的，所以你必须在结尾处反转它：
+
+(define (my-map f lst)
+  (define (iter lst backward-result)
+    (cond
+     [(empty? lst) (reverse backward-result)]
+     [else (iter (rest lst)
+                 (cons (f (first lst))
+                       backward-result))]))
+  (iter lst empty))
+  
+事实证明，如果你这样写：
+
+(define (my-map f lst)
+  (for/list ([i lst])
+    (f i)))
+    
+然后函数中的for/list表扩展到和iter函数局部定义和使用在本质上相同的代码。区别仅仅是句法上的便利。
