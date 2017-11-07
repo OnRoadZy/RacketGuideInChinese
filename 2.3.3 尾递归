@@ -23,7 +23,7 @@
      [else (iter (rest lst) (+ len 1))]))
   ; body of my-length calls iter:
   (iter lst 0))
-  
+
 现在求值过程看起来像这样：
 (my-length (list "a" "b" "c"))
 = (iter (list "a" "b" "c") 0)
