@@ -1,0 +1,33 @@
+2.3 列表、迭代和递归
+
+Racket语言是Lisp的一种方言，名字来自于“LISt Processor”。内置的列表数据类型保持了这种语言的一个显著特征。
+
+list函数接受任意数量的值并返回包含值的列表：
+
+> (list "red" "green" "blue")
+'("red" "green" "blue")
+
+> (list 1 2 3 4 5)
+'(1 2 3 4 5)
+
+你可以看到，一个列表的结果是作为引用（'）打印在REPL中，并且采用一对圆括号包围的列表元素的打印表。这里有一个容易混淆的地方，因为两个表达式都使用圆括号，比如(list "red" "green" "blue")，那么打印结果为'("red" "green" "blue")。除了引用，括号中的结果在文档中和DrRacket中打印为蓝色的，而表达式的括号是棕色的。
+
+在列表方面有许多预定义的函数操作。下面是几个例子：
+
+> (length (list "hop" "skip" "jump"))        ; 计算元子个数
+3
+
+> (list-ref (list "hop" "skip" "jump") 0)    ; 通过位置提取
+"hop"
+
+> (list-ref (list "hop" "skip" "jump") 1)
+"skip"
+
+> (append (list "hop" "skip") (list "jump")) ; 结合列表
+'("hop" "skip" "jump")
+
+> (reverse (list "hop" "skip" "jump"))       ; 反序
+'("jump" "skip" "hop")
+
+> (member "fall" (list "hop" "skip" "jump")) ;核查一个元子是否为成员
+#f
