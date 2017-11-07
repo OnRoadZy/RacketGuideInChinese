@@ -1,2 +1,63 @@
 2.3.2 从头开始列表迭代
 
+尽管map和其他迭代函数是预定义的，但它们在任何有趣的意义上都不是原始的。使用少量列表原语即能编写等效迭代。
+
+由于Racket列表是一个链表，在非空列表中的两个核心操作是:
+first：取得列表上的第一件事物；
+rest：获取列表的其余部分。
+
+例子：
+> (first (list 1 2 3))
+1
+
+> (rest (list 1 2 3))
+'(2 3)
+
+为链表添加一个新的节点——确切地说，添加到列表的前面——使用cons函数，那是“construct”（构造）的缩写。要得到一个空列表用于开始，用empty来构造：
+
+> empty
+'()
+
+> (cons "head" empty)
+'("head")
+
+> (cons "dead" (cons "head" empty))
+'("dead" "head")
+
+要处理列表，你需要能够区分空列表和非空列表，因为first和rest只在非空列表上工作。empty?函数检测空列表，cons? 检测非空列表：
+
+> (empty? empty)
+#t
+
+> (empty? (cons "head" empty))
+#f
+
+> (cons? empty)
+#f
+
+> (cons? (cons "head" empty))
+#t
+
+通过这些片段，您可以编写自己的length函数、map函数以及更多的函数的版本。
+
+例子：
+    (define (my-length lst)
+      (cond
+       [(empty? lst) 0]
+       [else (+ 1 (my-length (rest lst)))]))
+     
+    > (my-length empty)
+    0
+    > (my-length (list "a" "b" "c"))
+    3
+
+    (define (my-map f lst)
+      (cond
+       [(empty? lst) empty]
+       [else (cons (f (first lst))
+                   (my-map f (rest lst)))]))
+
+    > (my-map string-upcase (list "ready" "set" "go"))
+    '("READY" "SET" "GO")
+
+如果上述定义的派生对你来说难以理解，建议去读《如何设计程序》（How to Design Programs）。如果您只对使用递归调用而不是循环结构表示疑惑，那就继续往后读。
