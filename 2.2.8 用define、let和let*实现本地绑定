@@ -1,2 +1,54 @@
-2.2.8 用define、let和let*实现本地绑定
+2.2.8 用define、let和let*实现局部绑定
 
+现在是收起我们的Racket语法的另一个简化的时候了。在函数体中，定义可以出现在函数体表达式之前：
+
+( define ( ‹id› ‹id›* ) ‹definition›* ‹expr›+ )
+( lambda ( ‹id›* ) ‹definition›* ‹expr›+ )
+
+函数体开始时的定义在函数体中是局部的。
+
+例子：
+(define (converse s)
+  (define (starts? s2) ; local to converse
+    (define len2 (string-length s2))  ; local to starts?
+    (and (>= (string-length s) len2)
+         (equal? s2 (substring s 0 len2))))
+  (cond
+   [(starts? "hello") "hi!"]
+   [(starts? "goodbye") "bye!"]
+   [else "huh?"]))
+ 
+> (converse "hello!")
+"hi!"
+> (converse "urp")
+"huh?"
+> starts? ; outside of converse, so...
+starts?: undefined;
+ cannot reference undefined identifier
+ 
+ 创建本地绑定的另一种方法是let表。let的优点是它可以在任何表达式位置使用。另外，let同时可以绑定多个标识符，而不是每个标识符都需要单独用define定义。
+ 
+ ( let ( {[ ‹id› ‹expr› ]}* ) ‹expr›+ )
+ 
+每个约束条款是一个‹ID›和‹expr›方括号包围，和之后的从句表达的let函数体。在每一个条款，该‹ID›势必对应与函数体的‹expr›结果。
+
+> (let ([x (random 4)]
+        [o (random 4)])
+    (cond
+     [(> x o) "X wins"]
+     [(> o x) "O wins"]
+     [else "cat's game"]))
+     
+"O wins"
+
+let表的绑定仅在let的函数体中可用，因此绑定子句不能互相引用。相反，let*表允许后面的子句使用前面的绑定：
+
+> (let* ([x (random 4)]
+         [o (random 4)]
+         [diff (number->string (abs (- x o)))])
+    (cond
+     [(> x o) (string-append "X wins by " diff)]
+     [(> o x) (string-append "O wins by " diff)]
+     [else "cat's game"]))
+
+"cat's game"
