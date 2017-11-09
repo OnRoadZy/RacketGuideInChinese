@@ -1,1 +1,85 @@
 2.4.1 用quote引用pair和symbol
+
+一个列表在前面打印一个引号，但是如果一个列表的元素本身是一个列表，那么就不会为内部列表打印引号：
+
+> (list (list 1) (list 2 3) (list 4))
+'((1) (2 3) (4))
+
+对于嵌套列表，尤其是quote表，你可以将列表作为表达式来写，基本上与列表打印的方式相同：
+
+> (quote ("red" "green" "blue"))
+'("red" "green" "blue")
+
+> (quote ((1) (2 3) (4)))
+'((1) (2 3) (4))
+
+> (quote ())
+'()
+
+ 无论引用表是否由点括号消除规则规范，quote表都要包含点符号：
+ 
+> (quote (1 . 2))
+'(1 . 2)
+
+> (quote (0 . (1 . 2)))
+'(0 1 . 2) 
+
+当然，任何种类的列表都可以嵌套：
+
+> (list (list 1 2 3) 5 (list "a" "b" "c"))
+'((1 2 3) 5 ("a" "b" "c"))
+
+> (quote ((1 2 3) 5 ("a" "b" "c")))
+'((1 2 3) 5 ("a" "b" "c"))
+
+如果用quote包装标识符，则得到看起来像标识符的输出，但带有前缀：
+
+> (quote jane-doe)
+'jane-doe
+
+像引用标识符那样打印的值是符号（symbol）。同样，括号输出不应该和表达式混淆，一个打印符号不应与一个标识符混淆。特别是，符号(quote map)与map标识符或绑定到map的预定义函数无关，除了符号和标识符碰巧由相同的字母组成。
+
+的确，符号的内在价值不过是它的字符内容。从这个意义上说，符号和字符串几乎是一样的东西，主要区别在于它们是如何打印的。symbol->string和 string->symbol在它们之间转换。
+
+例子：
+> map
+#<procedure:map>
+
+> (quote map)
+'map
+
+> (symbol? (quote map))
+#t
+
+> (symbol? map)
+#f
+
+> (procedure? map)
+#t
+
+> (string->symbol "map")
+'map
+
+> (symbol->string (quote map))
+"map"
+
+在同样，对一个列表的quote会自动作用于它自己的嵌套列表，quote在一个括号序列的标识符会自动应用到它自身的标识符以创建一个符号表：
+
+> (car (quote (road map)))
+'road
+
+> (symbol? (car (quote (road map))))
+#t
+
+当一个符号在一个打印有‘的列表中时，在符号上的这个’被省略了，因为‘已经在做这项工作了：
+
+> (quote (road map))
+'(road map)
+
+quote表对文字表达式（如数字或字符串）没有影响：
+
+> (quote 42)
+42
+
+> (quote "on the record")
+"on the record"
