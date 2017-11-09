@@ -25,8 +25,8 @@
     2.3.3 尾递归（OK）
     2.3.4 递归和迭代（OK）
   2.4 pair、list和Racket的语法（OK）
-    2.4.1 用quote引用pair和symbol（……）
-    2.4.2 使用引用的缩写（'）
+    2.4.1 用quote引用pair和symbol（OK）
+    2.4.2 使用引用的缩写（'）（……）
     2.4.3 列表和Racket的语法
 
 3 内置的数据类型
