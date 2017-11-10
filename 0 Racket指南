@@ -30,8 +30,8 @@
     2.4.3 列表和Racket的语法（OK）
 
 3 内置的数据类型（OK）
-  3.1 布尔值（Boolean）（……）
-  3.2 数值（Number）
+  3.1 布尔值（Boolean）（OK）
+  3.2 数值（Number）（……）
   3.3 字符（Character）
   3.4 字符串（Unicode Strings）
   3.5 字节（Byte）和字节字符串（Byte String）
