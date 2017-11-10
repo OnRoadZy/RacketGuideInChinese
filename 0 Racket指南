@@ -40,7 +40,7 @@
   3.8 对（Pair）和列表（List）
   3.9 向量（Vector）
   3.10 哈希表（Hash Table）
-  3.11 盒（Box）
+  3.11 格子（Box）
   3.12 无效值（Void）和未定义值（Undefined）
 
 4 表达式和定义
