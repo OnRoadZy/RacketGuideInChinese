@@ -32,8 +32,8 @@
 3 内置的数据类型（OK）
   3.1 布尔值（Boolean）（OK）
   3.2 数值（Number）（OK）
-  3.3 字符（Character）（……）
-  3.4 字符串（Unicode Strings）
+  3.3 字符（Character）（OK）
+  3.4 字符串（Unicode Strings）（……）
   3.5 字节（Byte）和字节字符串（Byte String）
   3.6 符号（Symbol）
   3.7 关键词（Keyword）
