@@ -1,0 +1,64 @@
+3.5 字节（Byte）和字节字符串（Byte String）
+
+字节是包含0到255之间的精确整数。byte?判断表示字节的数字。
+
+例如：
+> (byte? 0)
+#t
+> (byte? 256)
+#f
+
+字节字符串类似于字符串——参见《字符串（Unicode）》部分，但它的内容是字节序列而不是字符。字节字符串可用于处理纯ASCII而不是Unicode文本的应用程序中。一个字节的字符串打印形式特别支持这样的用途，因为一个字节的字符串打印的ASCII的字节字符串解码，但有一个#前缀。在字节字符串不可打印的ASCII字符或非ASCII字节用八进制表示法。
+
+例如：
+> #"Apple"
+#"Apple"
+
+> (bytes-ref #"Apple" 0)
+65
+
+> (make-bytes 3 65)
+#"AAA"
+
+> (define b (make-bytes 2 0))
+> b
+#"\0\0"
+
+> (bytes-set! b 0 1)
+> (bytes-set! b 1 255)
+> b
+#"\1\377"
+
+一个字节字符串的display表写入其原始字节的电流输出端口（看《输入和输出》（Input and Output）部分）。从技术上讲，一个正常的display（即，字符编码的字符串）字符串打印到当前输出端口的UTF-8，因为产出的最终依据字节的定义；然而一个字节的字符串，显示，没有编码写入原始字节。同样，当这个文件显示输出，技术上显示输出的utf-8编码格式。
+
+例如：
+> (display #"Apple")
+Apple
+> (display "\316\273")  ; 等同于"Î»"
+Î»
+> (display #"\316\273") ; λ的UTF-8编码 
+λ
+
+字符串和字节字符串之间的显式转换，Racket直接支持三种编码：UTF-8，Latin-1，和当前的本地编码。字节到字节的通用转换器（特别是从UTF-8）弥合了支持任意字符串编码的差异分歧。
+
+例如：
+> (bytes->string/utf-8 #"\316\273")
+"λ"
+
+> (bytes->string/latin-1 #"\316\273")
+"Î»"
+
+> (parameterize ([current-locale "C"])  ; C locale supports ASCII,
+    (bytes->string/locale #"\316\273")) ; only, so...
+bytes->string/locale: byte string is not a valid encoding
+for the current locale
+  byte string: #"\316\273"
+  
+> (let ([cvt (bytes-open-converter "cp1253" ; Greek code page
+                                   "UTF-8")]
+        [dest (make-bytes 2)])
+    (bytes-convert cvt #"\353" 0 1 dest)
+    (bytes-close-converter cvt)
+    (bytes->string/utf-8 dest))
+    
+"λ"
