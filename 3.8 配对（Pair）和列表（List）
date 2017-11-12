@@ -1,0 +1,120 @@
+3.8 配对（Pair）和列表（List）
+
+一个配对把两个任意值结合。cons程序构建配对，car和cdr程序分别提取配对的第一和第二个成员。pair?判断确认配对。
+
+一些配对通过圆括号包围两个配对元素的打印表来打印，在开始位置放置'，在元素之间放置.。
+
+例如：
+> (cons 1 2)
+'(1 . 2)
+> (cons (cons 1 2) 3)
+'((1 . 2) . 3)
+> (car (cons 1 2))
+1
+> (cdr (cons 1 2))
+2
+> (pair? (cons 1 2))
+#t
+
+列表是创建链表的配对的组合。更确切地说，一个列表要么是空列表null，要么是个配对，其第一个元素是列表元素，第二个元素是一个列表。list?谓词识别列表。null?谓词识别空列表。
+
+列表通常打印一个'后跟一对括号括在列表元素周围。
+
+例如：
+> null
+'()
+> (cons 0 (cons 1 (cons 2 null)))
+'(0 1 2)
+> (list? null)
+#t
+> (list? (cons 1 (cons 2 null)))
+#t
+> (list? (cons 1 2))
+#f
+
+当一个列表或配对的一个元素不能写成引用值时，使用list或cons打印。例如，一个用srcloc构建的值不能使用quote来写，应该使用srcloc来写：
+
+> (srcloc "file.rkt" 1 0 1 (+ 4 4))
+(srcloc "file.rkt" 1 0 1 8)
+
+> (list 'here (srcloc "file.rkt" 1 0 1 8) 'there)
+(list 'here (srcloc "file.rkt" 1 0 1 8) 'there)
+
+> (cons 1 (srcloc "file.rkt" 1 0 1 8))
+(cons 1 (srcloc "file.rkt" 1 0 1 8))
+
+> (cons 1 (cons 2 (srcloc "file.rkt" 1 0 1 8)))
+(list* 1 2 (srcloc "file.rkt" 1 0 1 8))
+
+如最后一个例子所示，list*是用来缩略一系列的不能使用list缩略的cons。
+
+write和display函数不带前导'、cons、list或list*打印一个配对或一个列表。一个配对或列表的write和display没有区别，除非它们运用于列表元素：
+
+例如：
+> (write (cons 1 2))
+(1 . 2)
+> (display (cons 1 2))
+(1 . 2)
+> (write null)
+()
+> (display null)
+()
+> (write (list 1 2 "3"))
+(1 2 "3")
+> (display (list 1 2 "3"))
+(1 2 3)
+
+列表中最重要的预定义程序是遍历列表元素的那些程序：
+
+> (map (lambda (i) (/ 1 i))
+       '(1 2 3))
+'(1 1/2 1/3)
+
+> (andmap (lambda (i) (i . < . 3))
+         '(1 2 3))
+#f
+
+> (ormap (lambda (i) (i . < . 3))
+         '(1 2 3))
+#t
+
+> (filter (lambda (i) (i . < . 3))
+          '(1 2 3))
+'(1 2)
+
+> (foldl (lambda (v i) (+ v i))
+         10
+         '(1 2 3))
+16
+
+> (for-each (lambda (i) (display i))
+            '(1 2 3))
+123
+
+> (member "Keys"
+          '("Florida" "Keys" "U.S.A."))
+'("Keys" "U.S.A.")
+
+> (assoc 'where
+         '((when "3:30") (where "Florida") (who "Mickey")))
+'(where "Florida")
+
+配对是不可变的（与Lisp传统相反），pair?、list?仅识别不可变的配对和列表。mcons程序创建一个可变的配对，用set-mcar!和set-mcdr!，及mcar和mcdr进行操作。一个可变的配对用mcons打印，而write和display使用{和}打印可变配对：
+
+例如：
+> (define p (mcons 1 2))
+> p
+(mcons 1 2)
+
+> (pair? p)
+#f
+
+> (mpair? p)
+#t
+
+> (set-mcar! p 0)
+> p
+(mcons 0 2)
+
+> (write p)
+{0 . 2}
