@@ -34,9 +34,9 @@
   3.2 数值（Number）（OK）
   3.3 字符（Character）（OK）
   3.4 字符串（Unicode Strings）（OK）
-  3.5 字节（Byte）和字节字符串（Byte String）（……）
-  3.6 符号（Symbol）
-  3.7 关键词（Keyword）
+  3.5 字节（Byte）和字节字符串（Byte String）（OK）
+  3.6 符号（Symbol）（OK）
+  3.7 关键词（Keyword）（……）
   3.8 配对（Pair）和列表（List）
   3.9 向量（Vector）
   3.10 哈希表（Hash Table）
