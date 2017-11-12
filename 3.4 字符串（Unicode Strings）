@@ -1,4 +1,47 @@
 3.4 字符串（Unicode Strings）
 
-字符串是固定长度的字符（characters）数组。它打印使用双引号，双引号和反斜杠字符在字符串是用反斜杠逃脱。其他常见的字符串转义是支持的，包括n个换行，R为一个回车，八进制转义使用由多达三个八进制数字，十六进制逃逸与U（四位数）。在一系列不可打印的字符通常显示U当打印字符串。
+字符串是固定长度的字符（characters）数组。它打印使用双引号，双引号和反斜杠字符在字符串中是用反斜杠转义。其他常见的字符串转义是支持的，包括\n换行，\r回车，使用\后边跟随三个八进制数字实现八进制转义，使用\u（达四位数）实现十六进制转义。在打印字符串时通常用\u显示字符串中的不可打印字符。
 
+display程序直接将字符串的字符写入当前输出端口（见《输入和输出》）（Input and Output），与打印字符串结果的字符串常量语法形成对照。
+
+例如：
+> "Apple"
+"Apple"
+> "\u03BB"
+"λ"
+> (display "Apple")
+Apple
+> (display "a \"quoted\" thing")
+a "quoted" thing
+> (display "two\nlines")
+two
+lines
+> (display "\u03BB")
+λ
+
+字符串可以是可变的，也可以是不可变的；作为表达式直接写入的字符串是不可变的，但大多数其他字符串是可变的。 make-string程序创建一个给定长度和可选填充字符的可变字符串。string-ref程序从字符串（用0字符串集索引）存取一个字符。string-set!程序更改可变字符串中的一个字符。
+
+例如：
+> (string-ref "Apple" 0)
+#\A
+> (define s (make-string 5 #\.))
+> s
+"....."
+> (string-set! s 2 #\λ)
+> s
+"..λ.."
+
+字符串排序和状态操作通常是区域无关（locale-independent）的，也就是说，它们对所有用户都是相同的。提供了一些与区域相关（locale-dependent）的操作，允许字符串折叠和排序的方式取决于最终用户的区域设置。如果你在排序字符串，例如，如果排序结果应该在机器和用户之间保持一致，使用string<?或者string-ci<?，但如果排序纯粹是为最终用户订购字符串，使用string-locale<?或者string-locale-ci<?。
+
+例如：
+> (string<? "apple" "Banana")
+#f
+> (string-ci<? "apple" "Banana")
+#t
+> (string-upcase "Straße")
+"STRASSE"
+> (parameterize ([current-locale "C"])
+    (string-locale-upcase "Straße"))
+"STRAßE"
+
+对于使用纯ASCII、处理原始字节、或将Unicode字符串编码/解码为字节，使用字节字符串（byte strings）。
