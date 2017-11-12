@@ -24,7 +24,7 @@
     2.3.2 从头开始列表迭代（OK）
     2.3.3 尾递归（OK）
     2.3.4 递归和迭代（OK）
-  2.4 pair、list和Racket的语法（OK）
+  2.4 配对（pair）、列表（list）和Racket的语法（OK）
     2.4.1 用quote引用pair和symbol（OK）
     2.4.2 使用’缩写quote（OK）
     2.4.3 列表和Racket的语法（OK）
@@ -37,7 +37,7 @@
   3.5 字节（Byte）和字节字符串（Byte String）（……）
   3.6 符号（Symbol）
   3.7 关键词（Keyword）
-  3.8 对（Pair）和列表（List）
+  3.8 配对（Pair）和列表（List）
   3.9 向量（Vector）
   3.10 哈希表（Hash Table）
   3.11 格子（Box）
@@ -71,7 +71,7 @@
     4.7.2 组合测试：and和or
     4.7.3 约束测试：cond
   4.8 排序
-    4.8.1 前置效应：gegin
+    4.8.1 前置效应：begin
     4.8.2 后置效应：begin0
     4.8.3 条件效应：when和unless
   4.9 赋值：set!
