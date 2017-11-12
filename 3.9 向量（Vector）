@@ -1,0 +1,33 @@
+3.9 向量（Vector）
+
+向量是任意值的固定长度数组。与列表不同，向量支持常量时间访问和元素更新。
+
+向量打印类似列表——作为其元素的括号序列——但向量要在'之后加前缀#，或如果某个元素不能用引号则使用vector表示。
+
+向量作为表达式，可以提供可选长度。同时，一个向量作为一个隐式引用的形式表达的内容，这意味着在一个矢量常数标识符和括号表表示的符号和列表。
+
+例如：
+> #("a" "b" "c")
+'#("a" "b" "c")
+
+> #(name (that tune))
+'#(name (that tune))
+
+> #4(baldwin bruce)
+'#(baldwin bruce bruce bruce)
+
+> (vector-ref #("a" "b" "c") 1)
+"b"
+
+> (vector-ref #(name (that tune)) 1)
+'(that tune)
+
+像字符串一样，向量要么是可变的，要么是不可变的，直接作为表达式编写的向量是不可变的。
+
+向量可以通过vector->list和list->vector转换成列表，反之亦然。这种转换与列表中预定义的程序相结合特别有用。当分配额外的列表似乎太昂贵时，考虑使用像for/fold的循环形式，它像列表一样识别向量。
+
+例如：
+> (list->vector (map string-titlecase
+                     (vector->list #("three" "blind" "mice"))))
+
+'#("Three" "Blind" "Mice")
