@@ -1,0 +1,51 @@
+4.2 标识符和绑定
+
+表达式的上下文决定表达式中出现的标识符的含义。特别是，用语言racket开始一个模块时，如：
+
+#lang racket
+
+意味着，在模块中，本指南中描述的标识符从这里描述的含义开始：cons指创建一个配对的函数，car指的是提取一个配对的第一个元素的函数，等等。
+
+诸如像 define、lambda和let的表，并让一个意义与一个或多个标识符相关联，也就是说，它们绑定标识符。绑定应用的程序的一部分是绑定的范围。对给定表达式有效的绑定集是表达式的环境。
+
+例如，有以下内容：
+
+#lang racket
+ 
+(define f
+  (lambda (x)
+    (let ([y 5])
+      (+ x y))))
+ 
+(f 10)
+
+define是f的绑定，lambda有一个对x的绑定，let有一个对y的绑定，对f的绑定范围是整个模块；x绑定的范围是(let ([y 5]) (+ x y))；y绑定的范围仅仅是 (+ x y)。(+ x y)的环境包括对y、x和f的绑定，以及所有在racket中的绑定。
+
+模块级的define只能绑定尚未定义或被require进入模块的标识符。但是，局部define或其他绑定表可以为已有绑定的标识符提供新的局部绑定；这样的绑定会对现有绑定屏蔽（shadow）。
+
+例如：
+(define f
+  (lambda (append)
+    (define cons (append "ugly" "confusing"))
+    (let ([append 'this-was])
+      (list append cons))))
+ 
+> (f list)
+
+'(this-was ("ugly" "confusing"))
+
+类似地，模块级define可以从模块的语言中shadow一个绑定。例如，一个racket模块里的(define cons 1)屏蔽被racket所提供的cons。有意屏蔽一个语言绑定是一个绝佳的主意——尤其是像cons这种被广泛使用的绑定——但是屏蔽消除了程序员应该避免使用的语言提供的所有模糊绑定。
+
+即使像define和lambda这些从绑定中得到它们的含义，尽管它们有转换（transformer）绑定（这意味着它们表示语法表）而不是值绑定。由于define具有一个转换绑定，因此标识符本身不能用于获取值。但是，对define的常规绑定可以被屏蔽。
+
+例如：
+> define
+
+eval:1:0: define: bad syntax
+
+  in: define
+> (let ([define 5]) define)
+
+5
+
+同样，用这种方式来隐藏标准绑定是一个绝佳主意，但这种可能性是Racket灵活性的与生俱来的部分。
