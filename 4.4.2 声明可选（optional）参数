@@ -1,0 +1,36 @@
+4.4.2 声明可选（optional）参数
+
+不只是标识符，一个lambda表的参数（不仅是剩余参数）可以用标识符和缺省值指定：
+
+(lambda gen-formals
+  body ...+)
+ 
+gen-formals	 	=	 	(arg ...)
+ 	 	|	 	rest-id
+ 	 	|	 	(arg ...+ . rest-id)
+ 	 	 	 	 
+arg	 	=	 	arg-id
+ 	 	|	 	[arg-id default-expr]
+
+表的参数[arg-id default-expr]是可选的。当参数不在应用程序中提供，default-expr产生默认值。default-expr可以引用任何前面的arg-id，并且下面的每个arg-id也必须应该有一个默认值。
+
+例如：
+    (define greet
+      (lambda (given [surname "Smith"])
+        (string-append "Hello, " given " " surname)))
+     
+    > (greet "John")
+    "Hello, John Smith"
+    > (greet "John" "Doe")
+    "Hello, John Doe"
+
+    (define greet
+      (lambda (given [surname (if (equal? given "John")
+                                  "Doe"
+                                  "Smith")])
+        (string-append "Hello, " given " " surname)))
+
+    > (greet "John")
+    "Hello, John Doe"
+    > (greet "Adam")
+    "Hello, Adam Smith"
