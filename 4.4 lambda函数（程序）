@@ -1,0 +1,26 @@
+4.4 lambda函数（程序）
+
+lambda表达式创建函数。在最简单的情况，lambda表达式具有形式：
+
+(lambda (arg-id ...)
+  body ...+)
+
+具有n个arg-ids的lambda表接受n个参数：
+
+> ((lambda (x) x)
+   1)
+1
+
+> ((lambda (x y) (+ x y))
+   1 2)
+3
+
+> ((lambda (x y) (+ x y))
+   1)
+#<procedure>: arity mismatch;
+ the expected number of arguments does not match the given
+number
+  expected: 2
+  given: 1
+  arguments...:
+   1
