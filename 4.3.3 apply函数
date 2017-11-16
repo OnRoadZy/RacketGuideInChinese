@@ -1,0 +1,54 @@
+4.3.3 apply函数
+
+函数调用的语法支持任意数量的参数，但是一个特定的调用总是指定一个固定数量的参数。因此，一个带参数列表的函数不能直接将一个类似于+的函数应用到列表中的所有项中：
+
+(define (avg lst) ; doesn’t work...
+  (/ (+ lst) (length lst)))
+
+> (avg '(1 2 3))
++: contract violation
+  expected: number?
+  given: '(1 2 3)
+
+(define (avg lst) ; doesn’t always work...
+  (/ (+ (list-ref lst 0) (list-ref lst 1) (list-ref lst 2))
+     (length lst)))
+
+> (avg '(1 2 3))
+2
+> (avg '(1 2))
+list-ref: index too large for list
+  index: 2
+  in: '(1 2)
+
+apply函数提供了一种绕过这种限制的方法。它使用一个函数和一个list参数，并将函数应用到列表中的值：
+
+(define (avg lst)
+  (/ (apply + lst) (length lst)))
+
+> (avg '(1 2 3))
+2
+> (avg '(1 2))
+3/2
+> (avg '(1 2 3 4))
+5/2
+
+为方便起见，apply函数接受函数和列表之间的附加参数。额外的参数被有效地加入参数列表：
+
+(define (anti-sum lst)
+  (apply - 0 lst))
+
+> (anti-sum '(1 2 3))
+-6
+
+apply函数也接受关键字参数，并将其传递给调用函数：
+
+(apply go #:mode 'fast '("super.rkt"))
+(apply go '("super.rkt") #:mode 'fast)
+
+包含在apply列表参数中的关键字不算作调用函数的关键字参数；相反，这个列表中的所有参数都被位置参数处理。要将一个关键字参数列表传递给函数，使用keyword-apply函数，它接受一个要应用的函数和三个列表。前两个列表是平行的，其中第一个列表包含关键字（按keyword<?排序），第二个列表包含每个关键字的对应参数。第三个列表包含位置函数参数，就像apply。
+
+(keyword-apply go
+               '(#:mode)
+               '(fast)
+               '("super.rkt"))
