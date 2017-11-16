@@ -1,0 +1,28 @@
+4.3.1 求值顺序和元数
+
+一个函数调用求值是首先求值proc-expr和为所有arg-expr（由左至右）。然后，如果proc-expr产生一个函数接受arg-expr提供的所有参数，这个函数被调用。否则，将引发异常。
+
+例如：
+> (cons 1 null)
+'(1)
+> (+ 1 2 3)
+6
+> (cons 1 2 3)
+cons: arity mismatch;
+ the expected number of arguments does not match the given
+number
+  expected: 2
+  given: 3
+  arguments...:
+   1
+   2
+   3
+> (1 2 3)
+application: not a procedure;
+ expected a procedure that can be applied to arguments
+  given: 1
+  arguments...:
+   2
+   3
+
+某些函数，如cons，接受固定数量的参数。某些函数，如+或list，接受任意数量的参数。一些函数接受一系列参数计数；例如substring接受两个或三个参数。一个函数的元数（arity）是它接受参数的数量。
