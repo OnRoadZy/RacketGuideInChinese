@@ -50,12 +50,12 @@
     4.3.1 求值顺序和元数（OK）
     4.3.2 关键字参数（OK）
     4.3.3 apply函数（OK）
-  4.4 lambda函数（程序）（……）
-    4.4.1 申明剩余（rest）参数
-    4.4.2 声明可选（optional）参数
-    4.4.3 声明关键字（keyword）参数
-    4.4.4 多解函数：case-lambda
-  4.5 定义：define
+  4.4 lambda函数（程序）（OK）
+    4.4.1 申明剩余（rest）参数（OK）
+    4.4.2 声明可选（optional）参数（OK）
+    4.4.3 声明关键字（keyword）参数（OK）
+    4.4.4 多解函数：case-lambda（OK）
+  4.5 定义：define（……）
     4.5.1 函数速记法
     4.5.2 特殊功能速记法
     4.5.3 多值和define-values
