@@ -1,0 +1,54 @@
+4.4.1 申明剩余（rest）参数
+
+lambda表达式也可以有这种形式：
+
+(lambda rest-id
+  body ...+)
+
+也就是说，lambda表达式可以有一个没有被圆括号包围的单个rest-id。所得到的函数接受任意数目的参数，并且这个参数放入一个绑定到rest-id的列表：
+
+例如：
+> ((lambda x x)
+   1 2 3)
+'(1 2 3)
+> ((lambda x x))
+'()
+> ((lambda x (car x))
+   1 2 3)
+1
+
+带有一个rest-id的函数经常使用apply函数调用另一个函数，它接受任意数量的参数。
+
+例如：
+(define max-mag
+  (lambda nums
+    (apply max (map magnitude nums))))
+ 
+> (max 1 -2 0)
+1
+> (max-mag 1 -2 0)
+2
+
+lambda表还支持必需参数与rest-id相结合：
+
+(lambda (arg-id ...+ . rest-id)
+  body ...+)
+
+这个表的结果是一个函数，它至少需要与arg-id一样多的参数，并且还接受任意数量的附加参数。
+
+例如：
+
+(define max-mag
+  (lambda (num . nums)
+    (apply max (map magnitude (cons num nums)))))
+ 
+> (max-mag 1 -2 0)
+2
+> (max-mag)
+max-mag: arity mismatch;
+ the expected number of arguments does not match the given
+number
+  expected: at least 1
+  given: 0
+
+rest-id变量有时称为rest参数，因为它接受函数参数的“rest”。
