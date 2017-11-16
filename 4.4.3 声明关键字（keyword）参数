@@ -1,0 +1,55 @@
+4.4.3 声明关键字（keyword）参数
+
+lambda表可以声明要通过关键字传递的参数，而不是位置。关键字参数可以与位置参数混合，也可以为两种参数提供默认值表达式：
+
+(lambda gen-formals
+  body ...+)
+ 
+gen-formals	 	=	 	(arg ...)
+ 	 	|	 	rest-id
+ 	 	|	 	(arg ...+ . rest-id)
+ 	 	 	 	 
+arg	 	=	 	arg-id
+ 	 	|	 	[arg-id default-expr]
+ 	 	|	 	arg-keyword arg-id
+ 	 	|	 	arg-keyword [arg-id default-expr]
+
+由一个应用程序使用同一个arg-keyword关键字提供一个参数，该参数指定为arg-keyword arg-id。在参数列表中关键字标识符对的位置与应用程序中的参数匹配并不重要，因为它将通过关键字而不是位置与参数值匹配。
+
+(define greet
+  (lambda (given #:last surname)
+    (string-append "Hello, " given " " surname)))
+    
+> (greet "John" #:last "Smith")
+"Hello, John Smith"
+> (greet #:last "Doe" "John")
+"Hello, John Doe"
+
+arg-keyword [arg-id default-expr]参数指定一个带默认值的关键字参数。
+
+例如：
+(define greet
+  (lambda (#:hi [hi "Hello"] given #:last [surname "Smith"])
+    (string-append hi ", " given " " surname)))
+    
+> (greet "John")
+"Hello, John Smith"
+> (greet "Karl" #:last "Marx")
+"Hello, Karl Marx"
+> (greet "John" #:hi "Howdy")
+"Howdy, John Smith"
+> (greet "Karl" #:last "Marx" #:hi "Guten Tag")
+"Guten Tag, Karl Marx"
+
+lambda表不支持创建一个接受“rest”关键字的函数。要构造一个接受所有关键字参数的函数，请使用make-keyword-procedure函数。这个函数支持make-keyword-procedure通过前两个（位置）参数中的并行列表接受关键字参数，然后由应用程序的所有位置参数作为剩余位置参数。
+
+例如：
+(define (trace-wrap f)
+  (make-keyword-procedure
+   (lambda (kws kw-args . rest)
+     (printf "Called with ~s ~s ~s\n" kws kw-args rest)
+     (keyword-apply f kws kw-args rest))))
+ 
+> ((trace-wrap greet) "John" #:hi "Howdy")
+Called with (#:hi) ("Howdy") ("John")
+"Howdy, John Smith"
