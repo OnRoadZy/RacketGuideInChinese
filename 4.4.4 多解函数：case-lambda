@@ -1,0 +1,31 @@
+4.4.4 多解函数：case-lambda
+
+case-lambda表创建一个函数，该函数可以根据所提供的参数的数量具有完全不同的行为。case-lambda表达式有以下形式：
+
+(case-lambda
+  [formals body ...+]
+  ...)
+ 
+formals	 	=	 	(arg-id ...)
+ 	 	|	 	rest-id
+ 	 	|	 	(arg-id ...+ . rest-id)
+
+每个[formals body ...+]类似于(lambda formals body ...+)。通过case-lambda应用函数生成类似于应用一个lambda匹配给定参数数量的第一种情况。
+
+例如：
+(define greet
+  (case-lambda
+    [(name) (string-append "Hello, " name)]
+    [(given surname) (string-append "Hello, " given " " surname)]))
+ 
+> (greet "John")
+"Hello, John"
+> (greet "John" "Smith")
+"Hello, John Smith"
+> (greet)
+greet: arity mismatch;
+ the expected number of arguments does not match the given
+number
+  given: 0
+
+lambda函数不能直接支持可选参数或关键字参数。
