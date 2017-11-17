@@ -1,0 +1,41 @@
+4.5.1 函数简写
+
+定义表还支持函数定义的简写：
+
+(define (id arg ...) body ...+)
+
+这是以下内容的简写：
+
+(define id (lambda (arg ...) body ...+))
+
+例如：
+(define (greet name)
+  (string-append salutation ", " name))
+
+> (greet "John")
+"Hi, John"
+
+(define (greet first [surname "Smith"] #:hi [hi salutation])
+  (string-append hi ", " first " " surname))
+
+> (greet "John")
+"Hi, John Smith"
+> (greet "John" #:hi "Hey")
+"Hey, John Smith"
+> (greet "John" "Doe")
+"Hi, John Doe"
+
+通过define这个函数简写也支持一个剩余参数（rest argument）（即，一个额外参数用于在列表中收集最后参数）：
+
+(define (id arg ... . rest-id) body ...+)
+
+这是以下内容的简写：
+
+(define id (lambda (arg ... . rest-id) body ...+))
+
+例如：
+(define (avg . l)
+  (/ (apply + l) (length l)))
+ 
+> (avg 1 2 3)
+2
