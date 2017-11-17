@@ -1,2 +1,13 @@
 4.5 定义：define
 
+基本定义具为如下形式：
+
+(define id expr)
+
+在这种情况下，id绑定到了expr的结果。
+
+例如：
+(define salutation (list-ref '("Hi" "Hello") (random 2)))
+ 
+> salutation
+"Hi"
