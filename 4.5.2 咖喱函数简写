@@ -1,0 +1,47 @@
+4.5.2 咖喱函数简写
+
+注意下面的make-add-suffix函数接收一个字符串并返回另一个带字符串的函数：
+
+(define make-add-suffix
+  (lambda (s2)
+    (lambda (s) (string-append s s2))))
+
+虽然不常见，但make-add-suffix的结果可以直接调用，就像这样：
+
+> ((make-add-suffix "!") "hello")
+"hello!"
+
+从某种意义上说，make-add-suffix是一个函数，需要两个参数，但每次只需要一个参数。一个函数带有一些参数并返回一个函数会消费更多，有时被称为一个咖喱函数（curried function）。
+
+使用define的函数简写形式，make-add-suffix可以等效地写成：
+
+(define (make-add-suffix s2)
+  (lambda (s) (string-append s s2)))
+
+这个简写反映了(make-add-suffix "!")函数调用的形状。define表更进一步支持定义反映嵌套函数调用的咖喱函数简写：
+
+(define ((make-add-suffix s2) s)
+  (string-append s s2))
+
+> ((make-add-suffix "!") "hello")
+"hello!"
+
+(define louder (make-add-suffix "!"))
+(define less-sure (make-add-suffix "?"))
+
+> (less-sure "really")
+"really?"
+> (louder "really")
+"really!"
+
+define函数简写的完整语法如下所示：
+
+(define (head args) body ...+)
+ 
+head	 	=	 	id
+ 	 	|	 	(head args)
+ 	 	 	 	 
+args	 	=	 	arg ...
+ 	 	|	 	arg ... . rest-id
+
+这个简写的扩展有一个给定义中的每个head的嵌套lambda表，最里面的head与最外面的lambda通信。
