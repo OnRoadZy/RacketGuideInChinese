@@ -1,2 +1,48 @@
 4.5.3 多值和define-values
 
+Racket表达式通常产生一个单独的结果，但有些表达式可以产生多个结果。例如，quotient（商）和remainder（余数）各自产生一个值，但quotient/remainder同时产生相同的两个值：
+
+> (quotient 13 3)
+4
+> (remainder 13 3)
+1
+> (quotient/remainder 13 3)
+4
+1
+
+如上所示，REPL在自己的行打印每一结果值。
+
+多值函数可以用values函数来实现，它接受任意数量的值，并将它们作为结果返回：
+
+> (values 1 2 3)
+1
+2
+3
+
+(define (split-name name)
+  (let ([parts (regexp-split " " name)])
+    (if (= (length parts) 2)
+        (values (list-ref parts 0) (list-ref parts 1))
+        (error "not a <first> <last> name"))))
+
+ 
+> (split-name "Adam Smith")
+"Adam"
+"Smith"
+
+define-values表同时将多个标识符绑定到多个结果产生单个表达式：
+
+(define-values (id ...) expr)
+
+由expr产生的结果数必须与id的数相匹配。
+
+例如：
+
+(define-values (given surname) (split-name "Adam Smith"))
+ 
+> given
+"Adam"
+> surname
+"Smith"
+
+一个define表（不是一个函数简写）等价于一个带有单个id的define-values表。
