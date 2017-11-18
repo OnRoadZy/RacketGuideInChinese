@@ -60,9 +60,9 @@
     4.5.2 咖喱函数简写（OK）
     4.5.3 多值和define-values（OK）
     4.5.4 内部定义（OK）
-   	4.6 局部绑定（OK）
-    4.6.1 并行绑定：let（……）
-    4.6.2 顺序绑定：let*
+  4.6 局部绑定（OK）
+    4.6.1 平行绑定：let（OK）
+    4.6.2 顺序绑定：let*（……）
     4.6.3 递归绑定：letrec
     4.6.4 命名let
     4.6.5 多值绑定：let-values，let*-values，letrec-values
