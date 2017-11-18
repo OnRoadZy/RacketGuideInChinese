@@ -1,0 +1,48 @@
+4.5.4 内部定义
+
+当句法表的语法指定body，那相应的表可以是定义或表达式。作为一个body的定义是一个内部定义（internal definition）。
+
+一个body序列中的表达式和内部定义可以混合，只要最后一个body是表达式。
+
+例如，lambda的语法是：
+
+(lambda gen-formals
+  body ...+)
+  
+下面是语法的有效实例：
+
+(lambda (f)                ; 没有定义
+  (printf "running\n")
+  (f 0))
+ 
+(lambda (f)                ; 一个定义
+  (define (log-it what)
+    (printf "~a\n" what))
+  (log-it "running")
+  (f 0)
+  (log-it "done"))
+ 
+(lambda (f n)              ; 两个定义
+  (define (call n)
+    (if (zero? n)
+        (log-it "done")
+        (begin
+          (log-it "running")
+          (f n)
+          (call (- n 1)))))
+  (define (log-it what)
+    (printf "~a\n" what))
+  (call n))
+
+特定的body序列中的内部定义是相互递归的，也就是说，只要引用在定义发生之前没有实际求值，那么任何定义都可以引用任何其他定义。如果过早引用定义，则会出现错误。
+
+例如：
+(define (weird)
+  (define x x)
+  x)
+ 
+> (weird)
+x: undefined;
+ cannot use before initialization
+ 
+一系列的内部定义只使用define很容易转换为等效的letrec表（如同在下一节介绍的内容）。然而，其他的定义表可以表现为一个body，包括define-values、 struct（见《程序员定义的数据类型》（Programmer-Defined Datatypes））或define-syntax（见《宏》（Macros））。
