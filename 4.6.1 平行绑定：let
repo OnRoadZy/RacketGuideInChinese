@@ -1,0 +1,34 @@
+4.6.1 平行绑定：let
+
+let表绑定一组标识符，每个标识符都是某个表达式的结果，用于let主体：
+
+(let ([id expr] ...) body ...+)
+
+id绑定处于”平行”状态，即对于任何id，没有一个id绑定到右边的expr，但都可在body内找到。id必须被定义为彼此不同的形式。
+
+例如：
+> (let ([me "Bob"])
+    me)
+"Bob"
+
+> (let ([me "Bob"]
+        [myself "Robert"]
+        [I "Bobby"])
+    (list me myself I))
+'("Bob" "Robert" "Bobby")
+
+> (let ([me "Bob"]
+        [me "Robert"])
+    me)
+eval:3:0: let: duplicate identifier
+  at: me
+  in: (let ((me "Bob") (me "Robert")) me)
+
+事实上，一个id的expr不会明白自己的绑定通常对封装有用，必须转回到旧的值：
+
+> (let ([me "Tarzan"]
+        [you "Jane"])
+    (let ([me you]
+          [you me])
+      (list me you)))
+'("Jane" "Tarzan")
