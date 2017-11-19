@@ -1,0 +1,25 @@
+4.6.4 命名let
+
+命名let是一个迭代和递归表。它使用与局部绑定相同的语法关键字let，但在let之后的标识符（而不是一个括号）触发不同的解析。
+
+(let proc-id ([arg-id init-expr] ...)
+  body ...+)
+
+命名的let表等效于
+
+(letrec ([proc-id (lambda (arg-id ...)
+                     body ...+)])
+  (proc-id init-expr ...))
+
+也就是说，一个命名的let绑定一个只在函数体中可见的函数标识符，并且用一些初始表达式的值隐式调用函数。
+
+例如：
+(define (duplicate pos lst)
+  (let dup ([i 0]
+            [lst lst])
+   (cond
+    [(= i pos) (cons (car lst) lst)]
+    [else (cons (car lst) (dup (+ i 1) (cdr lst)))])))
+ 
+> (duplicate 1 (list "apple" "cheese burger!" "banana"))
+'("apple" "cheese burger!" "cheese burger!" "banana")
