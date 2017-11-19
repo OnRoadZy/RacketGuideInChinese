@@ -1,0 +1,31 @@
+4.6.2 相继绑定：let*
+
+let*的语法和let的一样：
+
+(let* ([id expr] ...) body ...+)
+
+不同的是，每个id可用于以后的expr，以及body内。此外，id不需要有区别，最新的绑定可见。
+
+例如：
+
+> (let* ([x (list "Burroughs")]
+         [y (cons "Rice" x)]
+         [z (cons "Edgar" y)])
+    (list x y z))
+
+'(("Burroughs") ("Rice" "Burroughs") ("Edgar" "Rice" "Burroughs"))
+> (let* ([name (list "Burroughs")]
+         [name (cons "Rice" name)]
+         [name (cons "Edgar" name)])
+    name)
+
+'("Edgar" "Rice" "Burroughs")
+
+换言之， let*表是相当于嵌套的let表，每一个都有一个单独的绑定：
+
+> (let ([name (list "Burroughs")])
+    (let ([name (cons "Rice" name)])
+      (let ([name (cons "Edgar" name)])
+        name)))
+
+'("Edgar" "Rice" "Burroughs")
