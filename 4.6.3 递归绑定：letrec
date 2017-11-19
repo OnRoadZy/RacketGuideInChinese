@@ -1,0 +1,52 @@
+4.6.3 递归绑定：letrec
+
+letrec的语法也和let相同：
+
+(letrec ([id expr] ...) body ...+)
+
+而let使其其绑定只在body内被提供，let*使其绑定提供给任何后来的绑定expr，letrec使其绑定提供给所有其他expr，甚至更早的。换句话说，letrec绑定是递归的。
+
+在一个letrec表中的expr经常大都是递归或互相递归的lambda表函数：
+
+> (letrec ([swing
+            (lambda (t)
+              (if (eq? (car t) 'tarzan)
+                  (cons 'vine
+                        (cons 'tarzan (cddr t)))
+                  (cons (car t)
+                        (swing (cdr t)))))])
+    (swing '(vine tarzan vine vine)))
+
+'(vine vine tarzan vine)
+
+> (letrec ([tarzan-near-top-of-tree?
+            (lambda (name path depth)
+              (or (equal? name "tarzan")
+                  (and (directory-exists? path)
+                       (tarzan-in-directory? path depth))))]
+           [tarzan-in-directory?
+            (lambda (dir depth)
+              (cond
+                [(zero? depth) #f]
+                [else
+                 (ormap
+                  (λ (elem)
+                    (tarzan-near-top-of-tree? (path-element->string elem)
+                                              (build-path dir elem)
+                                              (- depth 1)))
+                  (directory-list dir))]))])
+    (tarzan-near-top-of-tree? "tmp"
+                              (find-system-path 'temp-dir)
+                              4))
+
+directory-list: could not open directory
+  path: /var/tmp/abrt/Python-2013-12-05-03:18:26-13782
+  system error: Permission denied; errno=13
+
+而一个letrec表的expr是典型的lambda表达式，它们可以是任何表达式。表达式按顺序求值，在获得每个值之后，它立即与相应的id相关联。如果id在其值准备就绪之前被引用，则会引发一个错误，就像内部定义一样。
+
+> (letrec ([quicksand quicksand])
+    quicksand)
+
+quicksand: undefined;
+ cannot use before initialization
