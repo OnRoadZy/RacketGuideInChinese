@@ -1,0 +1,20 @@
+4.6.5 多值绑定：let-values，let*-values，letrec-values
+
+以define-values同样的方式绑定定义的多个结果（见《多值和define-values》）（Multiple Values and define-values），let-values、let*-values和letrec-values值绑定多个局部结果。
+
+(let-values ([(id ...) expr] ...)
+  body ...+)
+
+(let*-values ([(id ...) expr] ...)
+  body ...+)
+
+(letrec-values ([(id ...) expr] ...)
+  body ...+)
+
+每个expr必须产生许多值作为id的对应。绑定的规则是和没有-values的形式的表相同：let-values的id只绑定在body里，let*-value的id绑定在后面从句的expr里，letrec-value的id绑定是针对对所有的expr。
+
+例如：
+> (let-values ([(q r) (quotient/remainder 14 3)])
+    (list q r))
+
+'(4 2)
