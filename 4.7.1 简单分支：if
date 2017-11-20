@@ -1,0 +1,9 @@
+4.7.1 简单分支：if
+
+在if表：
+
+(if test-expr then-expr else-expr)
+
+test-expr总是求值。如果它产生任何非#f值，然后对then-expr求值。否则，else-expr被求值。
+
+if表必须既有一个then-expr也有一个else-expr；后者不是可选的。执行（或跳过）基于一个test-expr的副作用，使用when或unless，将在后边《顺序》（Sequencing）部分描述。
