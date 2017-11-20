@@ -1,0 +1,20 @@
+4.7 条件分支
+
+大多数函数都可用于分支，如<和string?，结果要么产生#t要么产生#f。Racket的分支表，无论什么情况，对待任何非#f值为真。我们说一个真值（true value）意味着其它为任何非#f值。
+
+本约定的“真值（true value）”在#f能够代替故障或表明不提供一个可选的值的地方与协议完全吻合 。（谨防过度使用这一技巧，记住一个异常通常是一个更好的机制来报告故障。）
+
+例如，member函数具有双重职责；它可以用来查找从一个特定项目开始的列表的尾部，或者它可以用来简单地检查一个项目是否存在于列表中：
+
+> (member "Groucho" '("Harpo" "Zeppo"))
+#f
+> (member "Groucho" '("Harpo" "Groucho" "Zeppo"))
+'("Groucho" "Zeppo")
+> (if (member "Groucho" '("Harpo" "Zeppo"))
+      'yep
+      'nope)
+'nope
+> (if (member "Groucho" '("Harpo" "Groucho" "Zeppo"))
+      'yep
+      'nope)
+'yep
