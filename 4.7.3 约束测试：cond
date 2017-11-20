@@ -1,0 +1,58 @@
+4.7.3 约束测试：cond
+
+cond表链接了一系列的测试以选择一个表达式结果。一个最近似的情况，cond语法如下：
+
+(cond [test-expr body ...+]
+      ...)
+
+每个test-expr求值顺序求值。如果它产生#f，相应的body被忽略，求值进程进入下一个test-expr。当一个test-expr产生一个真值，它的body求值产生的结果作为cond表的结果。并不再进一步对test-expr求值。
+
+在cond最后的test-expr可用else代替。在求值条件里，else作为一个#t的同义词提供。但它阐明了最后的从句是为了获取所有剩余的事例。如果else没有被使用，而且可能没有test-expr产生真值；在这种情况下，该cond表达式的结果是#<void>。
+
+例如：
+> (cond
+   [(= 2 3) (error "wrong!")]
+   [(= 2 2) 'ok])
+'ok
+
+> (cond
+   [(= 2 3) (error "wrong!")])
+> (cond
+   [(= 2 3) (error "wrong!")]
+   [else 'ok])
+'ok
+
+(define (got-milk? lst)
+  (cond
+    [(null? lst) #f]
+    [(eq? 'milk (car lst)) #t]
+    [else (got-milk? (cdr lst))]))
+
+> (got-milk? '(apple banana))
+#f
+> (got-milk? '(apple milk banana))
+#t
+
+包括以上两种从句的cond的完整语法：
+
+(cond cond-clause ...)
+ 
+cond-clause	 	=	 	[test-expr then-body ...+]
+ 	 	|	 	[else then-body ...+]
+ 	 	|	 	[test-expr => proc-expr]
+ 	 	|	 	[test-expr]
+
+=>变体获取test-expr真的结果并且传递给proc-expr的结果，proc-expr必须是有一个参数的函数。
+
+
+例如：
+> (define (after-groucho lst)
+    (cond
+      [(member "Groucho" lst) => cdr]
+      [else (error "not there")]))
+> (after-groucho '("Harpo" "Groucho" "Zeppo"))
+'("Zeppo")
+> (after-groucho '("Harpo" "Zeppo"))
+not there
+
+只包括一个test-expr的从句是很少使用的。它捕获test-expr的真值的结果，并简单地返回这个结果给整个cond表达式。
