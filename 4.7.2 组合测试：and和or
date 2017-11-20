@@ -1,0 +1,20 @@
+4.7.2 组合测试：and和or
+
+Racket的and和or是语法形式，而不是函数。不像一个函数，如果前边的一个求值确定了答案，and和or表会忽略后边的表达式求值。
+
+(and expr ...)
+
+如果其所有的expr产生#f，or表产生#f。否则，它从它的expr第一个非#f值产生结果值。作为一个特殊的情况，(or)产生#f。
+
+例如：
+
+> (define (got-milk? lst)
+    (and (not (null? lst))
+         (or (eq? 'milk (car lst))
+             (got-milk? (cdr lst))))) ;仅在需要时发生
+> (got-milk? '(apple banana))
+#f
+> (got-milk? '(apple milk banana))
+#t
+
+如果求值达到and或or表的最后一个expr，那么expr的值直接决定and或or的结果。因此，最后一个expr是在尾部的位置，这意味着上面got-milk?函数在固定空间中运行。
