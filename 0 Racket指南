@@ -66,10 +66,10 @@
     4.6.3 递归绑定：letrec（OK）
     4.6.4 命名let（OK）
     4.6.5 多值绑定：let-values，let*-values，letrec-values（OK）
-  4.7 条件分支（……）
-    4.7.1 简单分支：if
-    4.7.2 组合测试：and和or
-    4.7.3 约束测试：cond
+  4.7 条件分支（OK）
+    4.7.1 简单分支：if（OK）
+    4.7.2 组合测试：and和or（OK）
+    4.7.3 约束测试：cond（……）
   4.8 排序
     4.8.1 前置效应：begin
     4.8.2 后置效应：begin0
