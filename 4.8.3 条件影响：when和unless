@@ -1,0 +1,39 @@
+4.8.3 条件影响：when和unless
+
+when表将if样式条件与“then”子句（并且没有“else”子句）的排序相结合：
+ 
+(when test-expr then-body ...+)
+ 
+如果test-expr产生一个真值，那么所有的then-body被求值。最后一个then-body的结果是when表的结果。否则，没有then-body被求值而且结果是#<void>。
+
+unless是相似的：
+
+(unless test-expr then-body ...+)
+
+不同的是，test-expr结果是相反的：如果test-expr结果为#f时then-body被求值。
+
+例如：
+
+(define (enumerate lst)
+  (if (null? (cdr lst))
+      (printf "~a.\n" (car lst))
+      (begin
+        (printf "~a, " (car lst))
+        (when (null? (cdr (cdr lst)))
+          (printf "and "))
+        (enumerate (cdr lst)))))
+
+> (enumerate '("Larry" "Curly" "Moe"))
+Larry, Curly, and Moe.
+
+(define (print-triangle height)
+  (unless (zero? height)
+    (display (make-string height #\*))
+    (newline)
+    (print-triangle (sub1 height))))
+
+> (print-triangle 4)
+****
+***
+**
+*
