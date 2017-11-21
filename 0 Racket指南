@@ -75,7 +75,7 @@
     4.8.2 后置影响：begin0（OK）
     4.8.3 if影响：when和unless（OK）
   4.9 赋值：set!（OK）
-    4.9.1 使用的指导原则（……）
+    4.9.1 使用赋值的指导原则（……）
     4.9.2 多值赋值：set!-values
   4.10 引用：quote和'
   4.11 类引用：quasiquote和`
