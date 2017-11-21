@@ -1,0 +1,25 @@
+4.8.2 后置影响：begin0
+
+一个begin0表达式与有一个begin表达式有相同的语法：
+
+(begin0 expr ...+)
+
+不同的是begin0返回第一个expr的结果，而不是最后一个expr的结果。begin0表对于实现发生在一个计算之后的副作用是有用的，尤其是在计算产生了一个未知的数值结果的情况下。
+
+例如：
+
+(define (log-times thunk)
+  (printf "Start: ~s\n" (current-inexact-milliseconds))
+  (begin0
+    (thunk)
+    (printf "End..: ~s\n" (current-inexact-milliseconds))))
+ 
+> (log-times (lambda () (sleep 0.1) 0))
+Start: 1509391508010.048
+End..: 1509391508110.237
+0
+> (log-times (lambda () (values 1 2)))
+Start: 1509391508110.958
+End..: 1509391508111.068
+1
+2
