@@ -1,0 +1,41 @@
+4.9 赋值：set!
+
+使用set!赋值给变量：
+
+(set! id expr)
+
+一个set!表达式对expr求值并改变id（它必须限制在闭括号的环境内）为结果值。set!表达式自己返回的结果是#<void>。
+
+例如：
+
+(define greeted null)
+
+(define (greet name)
+  (set! greeted (cons name greeted))
+  (string-append "Hello, " name))
+
+> (greet "Athos")
+"Hello, Athos"
+> (greet "Porthos")
+"Hello, Porthos"
+> (greet "Aramis")
+"Hello, Aramis"
+> greeted
+'("Aramis" "Porthos" "Athos")
+
+(define (make-running-total)
+  (let ([n 0])
+    (lambda ()
+      (set! n (+ n 1))
+      n)))
+(define win (make-running-total))
+(define lose (make-running-total))
+
+> (win)
+1
+> (win)
+2
+> (lose)
+1
+> (win)
+3
