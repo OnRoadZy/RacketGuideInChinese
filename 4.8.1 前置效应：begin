@@ -1,0 +1,54 @@
+4.8.1 前置效应：begin
+
+begin表达式排序表达式：
+
+(begin expr ...+)
+
+expr被顺序求值，并且除最后的expr结果外所有都被忽视。来自最后一个expr的结果作为begin表的结果，它是相对于begin表位于尾部的位置。
+
+例如：
+
+(define (print-triangle height)
+  (if (zero? height)
+      (void)
+      (begin
+        (display (make-string height #\*))
+        (newline)
+        (print-triangle (sub1 height)))))
+ 
+> (print-triangle 4)
+****
+***
+**
+*
+
+有多种表，比如lambda或cond支持一系列表达式甚至没有begin。这样的状态有时被叫做有一个隐含的begin（implicit begin）。
+
+例如：
+
+(define (print-triangle height)
+  (cond
+    [(positive? height)
+     (display (make-string height #\*))
+     (newline)
+     (print-triangle (sub1 height))]))
+ 
+> (print-triangle 4)
+****
+***
+**
+*
+
+begin表在顶层（top level）、模块级（module level）或仅在内部定义之后作为body是特殊的。在这些状态下，begin的上下文被拼接到周围的上下文中，而不是形成一个表达式。
+ 
+例如：
+
+> (let ([curly 0])
+    (begin
+      (define moe (+ 1 curly))
+      (define larry (+ 1 moe)))
+    (list larry curly moe))
+
+'(2 0 1)
+
+这种拼接行为主要用于宏（macro），我们稍后将在《宏》（macro）中讨论它。
