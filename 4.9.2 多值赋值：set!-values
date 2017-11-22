@@ -1,0 +1,31 @@
+4.9.2 多值赋值：set!-values
+
+ set!-values表一次赋值给多个变量，给出一个生成适当的数值的表达式：
+ 
+(set!-values (id ...) expr)
+
+这个表等价于使用let-values从expr接收多个结果，然后将结果使用set!单独赋值给id。
+
+例如：
+
+(define game
+  (let ([w 0]
+        [l 0])
+    (lambda (win?)
+      (if win?
+          (set! w (+ w 1))
+          (set! l (+ l 1)))
+      (begin0
+        (values w l)
+        ; swap sides...
+        (set!-values (w l) (values l w))))))
+ 
+> (game #t)
+1
+0
+> (game #t)
+1
+1
+> (game #f)
+1
+2
