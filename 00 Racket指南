@@ -79,7 +79,7 @@
     4.9.2 多值赋值：set!-values（OK）
   4.10 引用：quote和'（OK）
   4.11 准引用：quasiquote和`（……）
-  4.12 简单调度：case
+  4.12 简单分派：case
   4.13 动态绑定：parameterize
 
 5 自定义的数据类型
