@@ -28,4 +28,18 @@ car: contract violation
 
 "here"
 
+parameterize表不是一个像let那样的绑定表；每次location的使用向上都直接指向原来的定义。在parameterize主体被求值的整个时间内parameterize表调整参数的值，甚至是文本以外的parameterize主体的参数使用：
+
+> (define (would-you-could-you?)
+    (and (not (equal? (location) "here"))
+         (not (equal? (location) "there"))))
+> (would-you-could-you?)
+
+#f
+
+> (parameterize ([location "on a bus"])
+    (would-you-could-you?))
+
+#t
+
 ……
