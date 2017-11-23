@@ -1,0 +1,31 @@
+4.13 动态绑定：parameterize
+
+parameterize表把一个新值和body表达式求值过程中的一个参数（parameter）相结合：
+
+(parameterize ([parameter-expr value-expr] ...)
+  body ...+)
+
+例如，error-print-width参数控制在错误消息中打印一个值的字符数：
+
+> (parameterize ([error-print-width 5])
+    (car (expt 10 1024)))
+
+car: contract violation
+  expected: pair?
+  given: 10...
+  
+> (parameterize ([error-print-width 10])
+    (car (expt 10 1024)))
+
+car: contract violation
+  expected: pair?
+  given: 1000000..
+  
+一般来说，参数实现了一种动态绑定。make-parameter函数接受任何值并返回一个初始化为给定值的新参数。应用参数作为一个函数返回它的其当前值：
+
+> (define location (make-parameter "here"))
+> (location)
+
+"here"
+
+……
