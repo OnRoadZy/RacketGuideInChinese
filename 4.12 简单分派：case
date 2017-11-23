@@ -1,0 +1,38 @@
+4.12 简单分派：case
+
+通过将表达式的结果与子句的值相匹配，case表分派一个子句：
+
+(case expr
+  [(datum ...+) body ...+]
+  ...)
+
+每个datum将使用equal?对比expr的结果，然后相应的body被求值。case表可以为N个datum在O(log N)时间内分派正确的从句。
+
+可以给每个从句提供多个datum，而且如果任何一个datum匹配，那么相应的body被求值。
+
+例如：
+
+> (let ([v (random 6)])
+    (printf "~a\n" v)
+    (case v
+      [(0) 'zero]
+      [(1) 'one]
+      [(2) 'two]
+      [(3 4 5) 'many]))
+      
+0
+'zero
+
+一个case表最后一个从句可以使用else，就像cond那样：
+
+例如：
+
+> (case (random 6)
+    [(0) 'zero]
+    [(1) 'one]
+    [(2) 'two]
+    [else 'many])
+
+'many
+
+对于更一般的模式匹配（但没有分派时间保证），使用match，这个会在《模式匹配》（Pattern Matching）中介绍。
