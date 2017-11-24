@@ -1,0 +1,35 @@
+5.3 结构子类
+
+struct的扩展形式可以用来定义结构子类型（structure subtype），它是一种扩展现有结构类型的结构类型：
+
+(struct struct-id super-id (field-id ...))
+
+这个super-id必须是由struct绑定的结构类型名称（即名称不能被作为表达式直接使用）。
+
+例如：
+
+(struct posn (x y))
+(struct 3d-posn posn (z))
+
+一个结构子类型继承其超类型的字段，并且子类型构造器接受这个值作为子类型字段在超类型字段的值之后。一个结构子类型的实例可以被用作这个超类型的断言和访问器。
+
+例如：
+
+> (define p (3d-posn 1 2 3))
+> p
+#<3d-posn>
+
+> (posn? p)
+#t
+
+> (3d-posn-z p)
+3
+; a 3d-posn has an x field, but there is no 3d-posn-x selector:
+
+> (3d-posn-x p)
+3d-posn-x: undefined;
+ cannot reference undefined identifier
+; use the supertype's posn-x selector to access the x field:
+
+> (posn-x p)
+1
