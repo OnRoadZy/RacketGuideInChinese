@@ -42,4 +42,47 @@ parameterize表不是一个像let那样的绑定表；每次location的使用向
 
 #t
 
-……
+如果参数的使用是在parameterize主体内部进行的，但是在parameterize表产生一个值之前没有被求值，那么这个用法看不到parameterize表所安装的值：
+
+> (let ([get (parameterize ([location "with a fox"])
+               (lambda () (location)))])
+    (get))
+
+"here"
+
+参数的当前绑定可以通过将该参数作为具有值的函数进行调用以进行必要的调整。 如果parameterize已经调整了参数的值，那么直接应用参数过程只会影响与活动parameterize相关的值：
+
+> (define (try-again! where)
+    (location where))
+> (location)
+"here"
+
+> (parameterize ([location "on a train"])
+    (list (location)
+          (begin (try-again! "in a boat")
+                 (location))))
+'("on a train" "in a boat")
+
+> (location)
+"here"
+
+使用parameterize通常更适合于更新参数值，这与使用let绑定新变量的原因相同，最好使用set!（见《赋值：set!》）。
+
+似乎变量和set!可以解决很多参数解决的相同问题。 例如，lokation可以被定义为一个字符串，以及set!可以用来调整它的价值：
+
+> (define lokation "here")
+> (define (would-ya-could-ya?)
+    (and (not (equal? lokation "here"))
+         (not (equal? lokation "there"))))
+> (set! lokation "on a bus")
+> (would-ya-could-ya?)
+
+#t
+
+然而，参数与set!相比，参数提供了几个关键的优点：
+
+1、parameterize表有助于在正确避免异常时自动重置参数的值。 添加异常处理程序和其它表去实现转回一个set!是比较繁琐的。
+
+2、参数可以和tail调用很好的一致（请参阅《尾递归》）（Tail Recursion）。 parameterize表中的最后一个body相对于parameterize表处于尾部位置。
+
+3、参数与线程正常工作（请参阅《线程》）（Threads）。 parameterize表仅调整当前线程中的参数值，以避免与其他线程竞争。
