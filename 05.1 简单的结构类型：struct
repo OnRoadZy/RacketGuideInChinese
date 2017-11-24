@@ -1,0 +1,40 @@
+5.1 简单的结构类型：struct
+
+一个最接近的，struct的语法是
+
+(struct struct-id (field-id ...))
+
+例如：
+
+(struct posn (x y))
+
+struct表将struct-id和从struct-id和field-id构建的数值标识符绑定在一起：
+
+1、struct-id：一个构造函数，它将一些参数作为field-id的数值，并返回结构类型的一个实例。
+
+例如：
+
+> (posn 1 2)
+#<posn>
+
+2、struct-id?：一个判断函数，它获取单个参数，如果它是结构类型的实例返回#t，否则返回#f。
+
+例如：
+
+> (posn? 3)
+#f
+> (posn? (posn 1 2))
+#t
+
+3、struct-id-field-id：每个field-id，访问器从结构类型的一个实例中解析相应的字段值。
+
+例如：
+
+> (posn-x (posn 1 2))
+1
+> (posn-y (posn 1 2))
+2
+
+4、struct:struct-id：一个结构类型描述符，这是一个值，它体现结构类型作为最好的价值（与#:super和《更多的结构选项》（More Structure Type Options）一起作为后续讨论）。
+
+一个struct表不限制在结构类型的实例中可以出现的字段的值类型。例如，(posn "apple" #f)过程产生一个posn实例，即使"apple"和#f对posn的实例的显性使用是无效的配套。执行字段值的约束，比如要求它们是数字，通常是合约的工作，如后面讨论的《合约（Contracts）》那样。
