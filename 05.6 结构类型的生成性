@@ -1,0 +1,34 @@
+5.6 结构类型的生成性
+
+每次对一个struct表求值时，它就生成一个与所有现有结构类型不同的结构类型，即使某些其他结构类型具有相同的名称和字段。
+
+这种生成性对执行抽象和执行程序是有用的，就像口译员，但小心放置struct表被多次求值的位置。
+
+例如：
+
+(define (add-bigger-fish lst)
+  (struct fish (size) #:transparent) ;每次都生成新的
+  (cond
+   [(null? lst) (list (fish 1))]
+   [else (cons (fish (* 2 (fish-size (car lst))))
+               lst)]))
+
+> (add-bigger-fish null)
+(list (fish 1))
+
+> (add-bigger-fish (add-bigger-fish null))
+fish-size: contract violation;
+ given value instantiates a different structure type with
+the same name
+  expected: fish?
+  given: (fish 1)
+
+(struct fish (size) #:transparent)
+(define (add-bigger-fish lst)
+  (cond
+   [(null? lst) (list (fish 1))]
+   [else (cons (fish (* 2 (fish-size (car lst))))
+               lst)]))
+
+> (add-bigger-fish (add-bigger-fish null))
+(list (fish 2) (fish 1))
