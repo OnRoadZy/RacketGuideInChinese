@@ -1,0 +1,48 @@
+6.2.1 module表
+
+一个模块声明的普通写法形式，既可在REPL又可在一个文件中执行的是
+
+(module name-id initial-module-path
+  decl ...)
+
+其中的name-id是一个模块名，initial-module-path是一个初始的输入口，每个decl是一个输入口、输出口、定义或表达式。在文件的情况下，name-id通常与包含文件的名称相匹配，减去其目录路径或文件扩展名，但在模块通过其文件路径require时name-id被忽略。
+
+initial-module-path是必需的，因为即使是require表必须导入，以便在模块主体中进一步使用。换句话说，initial-module-path导入在主体内可供使用的引导语法。最常用的initial-module-path是racket，它提供了本指南中描述的大部分绑定，包括require、define和provide。另一种常用的initial-module-path是racket/base，它提供了较少的函数，但仍然是大多数最常用的函数和语法。
+
+例如，前面一节里的“cake.rkt”例子可以写为
+
+(module cake racket
+  (provide print-cake)
+ 
+  (define (print-cake n)
+    (show "   ~a   " n #\.)
+    (show " .-~a-. " n #\|)
+    (show " | ~a | " n #\space)
+    (show "---~a---" n #\-))
+ 
+  (define (show fmt n ch)
+    (printf fmt (make-string n ch))
+    (newline)))
+
+此外，module表可以在REPL中求值以申明一个cake模块，不与任何文件相关联。为指向是这样一个独立模块，这样引用模块名称：
+
+例如：
+
+> (require 'cake)
+> (print-cake 3)
+
+   ...   
+ .-|||-. 
+ |     | 
+---------
+
+声明模块不会立即求值这个模块的主体定义和表达式。这个模块必须在顶层明确地被require以来触发求值。在求值被触发一次之后，后续的require不会重新对模块主体求值。
+
+例如：
+
+> (module hi racket
+    (printf "Hello\n"))
+> (require 'hi)
+Hello
+
+> (require 'hi)
