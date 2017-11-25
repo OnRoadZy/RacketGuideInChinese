@@ -1,0 +1,180 @@
+5.8 更多的结构选项
+
+struct的完整语法支持许多选项，无论是在结构类型级别，还是在单个字段的级别上：
+
+(struct struct-id maybe-super (field ...)
+        struct-option ...)
+ 
+maybe-super	 	=	 	
+ 	 	|	 	super-id
+ 	 	 	 	 
+field	 	=	 	field-id
+ 	 	|	 	[field-id field-option ...]
+
+struct-option总是以关键字开头：
+
+#:mutable——
+
+会导致结构的所有字段是可变的，并介绍了每个field-id的一个set-struct-id-field-id!设置方式，在结构类型的实例中设置对应字段的值。
+
+例如：
+
+> (struct dot (x y) #:mutable)
+(define d (dot 1 2))
+ 
+> (dot-x d)
+1
+
+> (set-dot-x! d 10)
+> (dot-x d)
+10
+
+#:mutable选项也可以被用来作为一个field-option，在这种情况下，它使个别字段可变。
+
+例如：
+
+> (struct person (name [age #:mutable]))
+(define friend (person "Barney" 5))
+ 
+> (set-person-age! friend 6)
+> (set-person-name! friend "Mary")
+
+set-person-name!: undefined;
+ cannot reference undefined identifier
+
+#:transparent——
+
+控制对结构实例的反射访问，如前面一节所讨论的《不透明结构和透明结构类型》那样。
+
+#:inspector inspector-expr——
+
+概括#:transparent以支持更多的控制访问或反射操作。
+
+#:prefab——
+
+访问内置结构类型，如前一节所讨论的《预置结构类型》那样。
+
+#:auto-value auto-expr——
+
+指定了一个被用于所有结构类型的自动字段的值，这里一个自动字段被#:auto字段选项表明。这个构造函数不接受给自动字段的参数。自动字段无疑是可变的（通过反射操作），但设置函数仅在#:mutable也被指定的时候被绑定。
+
+例如：
+
+> (struct posn (x y [z #:auto])
+               #:transparent
+               #:auto-value 0)
+> (posn 1 2)
+
+(posn 1 2 0)
+
+#:guard guard-expr——
+
+指定在创建结构类型的实例时调用的构造函数保护过程。在结构类型中，保护程序获取与非自动字段相同的参数，再加上一个实例化类型的名称（如果子类型被实例化，在这种情况下最好使用子类型的名称报告错误）。保护过程应该返回与给定值相同的值，减去名称参数。如果某个参数不可接受，或者可以转换一个参数，则保护过程可以引发异常。
+
+例如：
+
+> (struct thing (name)
+          #:transparent
+          #:guard (lambda (name type-name)
+                    (cond
+                      [(string? name) name]
+                      [(symbol? name) (symbol->string name)]
+                      [else (error type-name
+                                   "bad name: ~e"
+                                   name)])))
+> (thing "apple")
+(thing "apple")
+
+> (thing 'apple)
+(thing "apple")
+
+> (thing 1/2)
+thing: bad name: 1/2
+
+即使创建子类型实例，也会调用保护过程。在这种情况下，只有构造函数接受的字段被提供给保护过程（但是子类型的保护过程同时获得子类型添加的原始字段和现有字段）。
+
+例如：
+
+> (struct person thing (age)
+          #:transparent
+          #:guard (lambda (name age type-name)
+                    (if (negative? age)
+                        (error type-name "bad age: ~e" age)
+                        (values name age))))
+> (person "John" 10)
+(person "John" 10)
+
+> (person "Mary" -1)
+person: bad age: -1
+
+> (person 10 10)
+person: bad name: 10
+
+#:methods interface-expr [body ...]——
+
+关联与泛型接口对应的结构类型的方法定义。例如，执行gen:dict方法允许一个结构类型实例用作字典。执行gen:custom-write方法允许定制如何显示结构类型的实例。
+
+例如：
+
+> (struct cake (candles)
+          #:methods gen:custom-write
+          [(define (write-proc cake port mode)
+             (define n (cake-candles cake))
+             (show "   ~a   ~n" n #\. port)
+             (show " .-~a-. ~n" n #\| port)
+             (show " | ~a | ~n" n #\space port)
+             (show "---~a---~n" n #\- port))
+           (define (show fmt n ch port)
+             (fprintf port fmt (make-string n ch)))])
+> (display (cake 5))
+
+   .....   
+ .-|||||-. 
+ |       | 
+-----------
+
+#:property prop-expr val-expr——
+
+将属性和值与结构类型相关联。例如，prop:procedure属性允许一个结构实例作为函数使用；属性值决定当使用结构作为函数时如何执行。
+
+例如：
+
+> (struct greeter (name)
+          #:property prop:procedure
+                     (lambda (self other)
+                       (string-append
+                        "Hi " other
+                        ", I'm " (greeter-name self))))
+(define joe-greet (greeter "Joe"))
+ 
+> (greeter-name joe-greet)
+"Joe"
+
+> (joe-greet "Mary")
+"Hi Mary, I'm Joe"
+
+> (joe-greet "John")
+"Hi John, I'm Joe"
+
+#:super super-expr——
+
+一种替代提供super-id与struct-id紧邻。代替这个结构类型的名字（它是一个表达式），super-expr应该产生一种结构类型的描述符的值。对#:super更高级形式是结构类型的描述符是值，所以他们可以通过程序。
+
+例如：
+
+(define (raven-constructor super-type)
+  (struct raven ()
+          #:super super-type
+          #:transparent
+          #:property prop:procedure (lambda (self)
+                                      'nevermore))
+  raven)
+ 
+> (let ([r ((raven-constructor struct:posn) 1 2)])
+    (list r (r)))
+
+(list (raven 1 2) 'nevermore)
+> (let ([r ((raven-constructor struct:thing) "apple")])
+    (list r (r)))
+
+(list (raven "apple") 'nevermore)
