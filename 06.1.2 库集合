@@ -25,7 +25,7 @@
  
 (require setup/dirs)
  
-(build-path (find-collects-dir) ; main collection directory
+(build-path (find-collects-dir) ;主集合的目录
             "racket")
 
 然而，Racket安装的“collects”目录仅仅是一个require寻找收集目录的地方。其它地方包括用户指定的通过(find-user-collects-dir)报告的目录以及通过pltcollects搜索路径配置的目录。最后，最典型的是，通过安装包找到的集合。
