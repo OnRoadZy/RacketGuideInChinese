@@ -1,0 +1,19 @@
+6.2.2 #lang简写
+
+#lang简写的主体没有特定的语法，因为语法是由如下#lang语言名称确定的。
+
+在#lang racket的情况下，语法为：
+
+#lang racket
+decl ...
+
+其读作如下同一内容：
+
+(module name racket
+  decl ...)
+
+这里的name是来自包含#lang表的文件名称。
+
+#lang racket/base表具有和#lang racket同样的语法，除了普通写法的扩展使用racket/base而不是racket。#lang scribble/manual表相反，有一个完全不同的语法，甚至看起来不像Racket，在这个指南里我们不准备去描述。
+
+除非另有规定，一个模块是一个文档，它作为“语言”使用#lang标记法表示将以和#lang racket同样的方式扩大到module中。文档的语言名也可以直接使用module或require。
