@@ -1,0 +1,28 @@
+6.2.3 子模块
+
+一个module表可以被嵌套在一个模块内，在这种情况下，这个嵌套module表声明一个子模块。子模块可以通过外围模块使用一个引用名称直接引用。下面的例子通过从zoo子模块导入tiger打印“Tony”：
+
+"park.rkt"
+
+    #lang racket
+     
+    (module zoo racket
+      (provide tiger)
+      (define tiger "Tony"))
+     
+    (require 'zoo)
+     
+    tiger
+
+运行一个模块不是必须运行子模块。在上面的例子中，运行“park.rkt”运行它的子模块zoo仅因为“park.rkt”模块require了这个zoo子模块。否则，一个模块及其子模块可以独立运行。此外，如果“park.rkt“被编译成字节码文件（通过raco make），那么“park.rkt”代码或zoo代码可以独立下载。
+
+子模块可以嵌套子模块，而且子模块可以被一个模块通过使用子模块路径直接引用，不同于它的外围模块。
+
+ 一个module*表类似于一个嵌套的module表：
+ 
+ (module* name-id initial-module-path-or-#f
+  decl ...)
+
+module*表不同于module，它反转这个对于子模块和外围模块的参考的可能性：
+
+……
