@@ -1,4 +1,4 @@
-6.2.4 主要的和测试的子模块
+6.2.4 main和test子模块
 
 下面“cake.rkt”的变体包括一个main子模块，它调用print-cake：
 
