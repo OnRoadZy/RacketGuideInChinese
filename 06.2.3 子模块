@@ -25,4 +25,31 @@
 
 module*表不同于module，它反转这个对于子模块和外围模块的参考的可能性：
 
-……
+1、用module申明的一个子模块模块可通过其外围模块require，但子模块不能require外围模块或在词法上参考外围模块的绑定。
+
+2、用module*申明的一个子模块可以require其外围模块，但外围模块不能require子模块。
+
+此外，一个module*表可以在initial-module-path的位置指定#f，在这种情况下，所有外围模块的绑定对子模块可见——包括没有使用provide输出的绑定。
+
+用module*和#f申明的子模块的一个应用是通过子模块输出附加绑定，那不是通常的从模块输出：
+
+"cake.rkt"
+
+    #lang racket
+     
+    (provide print-cake)
+     
+    (define (print-cake n)
+      (show "   ~a   " n #\.)
+      (show " .-~a-. " n #\|)
+      (show " | ~a | " n #\space)
+      (show "---~a---" n #\-))
+     
+    (define (show fmt n ch)
+      (printf fmt (make-string n ch))
+      (newline))
+     
+    (module* extras #f
+      (provide show))
+
+在这个修订的“cake.rkt”模块，show不是被一个模块输入，它采用(require "cake.rkt")，因为大部分“cake.rkt“的用户不想要那些额外的函数。一个模块可以要求extra子模块使用(require (submod "cake.rkt" extras))访问另外的隐藏的show函数。
