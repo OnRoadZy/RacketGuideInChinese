@@ -1,0 +1,30 @@
+6.2.4 主要的和测试的子模块
+
+下面“cake.rkt”的变体包括一个main子模块，它调用print-cake：
+
+"cake.rkt"
+
+    #lang racket
+     
+    (define (print-cake n)
+      (show "   ~a   " n #\.)
+      (show " .-~a-. " n #\|)
+      (show " | ~a | " n #\space)
+      (show "---~a---" n #\-))
+     
+    (define (show fmt n ch)
+      (printf fmt (make-string n ch))
+      (newline))
+     
+    (module* main #f
+      (print-cake 10))
+
+运行一个模块不会运行module*定义的子模块。尽管如此，还是可以通过racket或DrRacket运行上面的模块打印一个带10支蜡烛的蛋糕，因为main子模块是一个特殊情况。
+
+当一个模块作为一个可执行程序的名称提供给racket在DrRacket中直接运行或执行在，如果模块有一个main子模块，main子模块会在其外围模块之后运行。当一个模块直接运行时，声明一个main子模块从而指定额外的行为去被执行，以代替require作为在一个较大程序里的一个库。
+
+一个main子模块不必用module*声明。如果main模块不需要使用其外围模块的绑定，则可以用module声明它。更通常的是，main使用module+声明：
+
+(module+ name-id
+  decl ...)
+
