@@ -1,0 +1,82 @@
+就像在内建数据类型中提到的，Racket提供三种方式打印内建值类型的实例：
+
+print, 使用打印（）
+write, （）
+display, （）
+
+这里有一些例子：
+> (print 1/2)
+1/2
+> (print #\x)
+#\x
+> (print "hello")
+"hello"
+> (print #"goodbye")
+#"goodbye"
+> (print '|pea pod|)
+'|pea pod|
+> (print '("i" pod))
+'("i" pod)
+> (print write)
+#<procedure:write>
+ 
+> (write 1/2)
+1/2
+> (write #\x)
+#\x
+> (write "hello")
+"hello"
+> (write #"goodbye")
+#"goodbye"
+> (write '|pea pod|)
+|pea pod|
+> (write '("i" pod))
+("i" pod)
+> (write write)
+#<procedure:write>
+ 
+> (display 1/2)
+1/2
+> (display #\x)
+x
+> (display "hello")
+hello
+> (display #"goodbye")
+goodbye
+> (display '|pea pod|)
+pea pod
+> (display '("i" pod))
+(i pod)
+> (display write)
+#<procedure:write>
+
+总的来说，print对应Racket语法的表达层，write对应阅读层，display大致对应字符层。
+
+printf支持数据与文本的简单格式。在printf支持的格式字符串中，~a display下一个参数，~s write下一个参数，而~v print下一个参数。
+
+例子：
+(define (deliver who when what)
+  (printf "Items ~a for shopper ~s: ~v" who when what))
+ 
+> (deliver '("list") '("John") '("milk"))
+Items (list) for shopper ("John"): '("milk")
+
+使用write后，与display和read不同的是，许多类型的数据可以经由read重新读入。相同类型经print处理的值也能够被read解析，但是结果包含额外的引号形式，因为经print后的形式会被以表达式形式读入。
+
+例子：
+> (define-values (in out) (make-pipe))
+> (write "hello" out)
+> (read in)
+"hello"
+> (write '("alphabet" soup) out)
+> (read in)
+'("alphabet" soup)
+> (write #hash((a . "apple") (b . "banana")) out)
+> (read in)
+'#hash((a . "apple") (b . "banana"))
+> (print '("alphabet" soup) out)
+> (read in)
+''("alphabet" soup)
+> (display '("alphabet" soup) out)
+> (read in)
+'(alphabet soup)
