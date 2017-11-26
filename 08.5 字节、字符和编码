@@ -1,0 +1,7 @@
+类似read-line, read, display, write这样的函数的工作以字符为单位（对应Unicode标量值）。概念上来说，它们经由read-char与write-char实现。
+
+更初级一点，端口读写字节而非字符。read-byte与write-byte读写原始字节。其它函数，例如read-bytes-line，建立在字节操作而非字符操作。
+
+事实上，read-char和write-char函数概念上由read-byte和write-byte实现。当一个字节的值小于128，它将对应于一个ASCII字符。任何其它的字节会被视为UTF-8序列的一部分，而UTF-8则是字节形式编码Unicode标量值的标准方式之一（具有将ASCII字符原样映射的优点）。此外，一个单次的read-char可能会调用多次read-byte，一个标准的write-char可能生成多个输出字节。
+
+read-char和write-char操作总使用UTF-8编码。如果你有不同编码的文本流，或想以其它编码生成文本流，使用reencode-input-port或reencode-output-port。reencode-input-port将一种你指定编码的输入流转换为UTF-8流；以这种方式，read-char能够察觉UTF-8编码，即使原始编码并非如此。应当注意，read-byte也看到重编码后的数据，而非原始字节流。
