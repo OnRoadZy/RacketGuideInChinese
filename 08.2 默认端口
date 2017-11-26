@@ -1,0 +1,29 @@
+对于大多数简单IO函数，目标端口是一可选参数，默认值为当前的输入/输出端口。此外，错误信息被写入当前错误端口，这也是一个输出端口。current-input-port, current-output-port和current-error-port返回当前相关端口。
+
+例子：
+> (display "Hi")
+Hi
+> (display "Hi" (current-output-port)) ; the same
+Hi
+
+如果你通过终端打开racket程序，当前输入、输出、错误端口会连接至终端。更一般地，它们会连接到系统级的输入、输出、错误。在本指引中，例子将输出以紫色显示，错误信息以红色斜体显示。
+
+例子：
+(define (swing-hammer)
+  (display "Ouch!" (current-error-port)))
+ 
+> (swing-hammer)
+Ouch!
+
+当前端口这类函数实际上是参数，代表它们的值能够通过parameterize设置。
+
+（）
+
+例子：
+> (let ([s (open-output-string)])
+    (parameterize ([current-error-port s])
+      (swing-hammer)
+      (swing-hammer)
+      (swing-hammer))
+    (get-output-string s))
+"Ouch!Ouch!Ouch!"
