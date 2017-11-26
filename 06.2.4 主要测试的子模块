@@ -28,3 +28,59 @@
 (module+ name-id
   decl ...)
 
+用module+申明的一个子模块就像一个由module*用#f代替initial-module-path申明的模块。此外，多个module+表可以指定相同的子模块名称，在这种情况下，module+表的主体被组合起来以创建一个单独的子模块。
+
+ module+的组合行为对定义一个test子模块是非常有用的，它可以方便地使用raco test运行，用同样的方式main也可以方便地使用racket运行。例如，下面的“physics.rkt”模块输出drop和to-energy函数，它定义了一个test模块支持单元测试：
+ 
+ "physics.rkt"
+
+    #lang racket
+    (module+ test
+      (require rackunit)
+      (define ε 1e-10))
+     
+    (provide drop
+             to-energy)
+     
+    (define (drop t)
+      (* 1/2 9.8 t t))
+     
+    (module+ test
+      (check-= (drop 0) 0 ε)
+      (check-= (drop 10) 490 ε))
+     
+    (define (to-energy m)
+      (* m (expt 299792458.0 2)))
+     
+    (module+ test
+      (check-= (to-energy 0) 0 ε)
+      (check-= (to-energy 1) 9e+16 1e+15))
+
+引入“physics.rkt”到一个更大的程序不会运行drop和to-energy测试——即使引发这个测试代码的加载，如果模块被编译——但在运行raco test physics.rkt的时候会同时运行这个测试。
+
+上述“physics.rkt”模块相当于使用module*：
+
+"physics.rkt"
+
+    #lang racket
+     
+    (provide drop
+             to-energy)
+     
+    (define (drop t)
+      (* 1/2 49/5 t t))
+     
+    (define (to-energy m)
+      (* m (expt 299792458 2)))
+     
+    (module* test #f
+      (require rackunit)
+      (define ε 1e-10)
+      (check-= (drop 0) 0 ε)
+      (check-= (drop 10) 490 ε)
+      (check-= (to-energy 0) 0 ε)
+      (check-= (to-energy 1) 9e+16 1e+15))
+
+使用module+代替module*允许测试与函数定义交叉。
+
+module+的组合行为有时对main模块也有帮助。即使组合是不需要的，(module+ main ....)仍是首选，因为它比(module* main #f ....)更具可读性。
