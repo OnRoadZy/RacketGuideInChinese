@@ -1,0 +1,53 @@
+6.3 模块的路径
+
+模块路径（module path）是对模块的引用，作为require的使用，或者作为module表中的initial-module-path。它可以是几种形式中的任意一种：
+
+1、(quote id)
+
+引用标识符的模块路径指的是使用标识符的非文件module声明。这种模块引用形式做多的场景是在REPL。
+
+例如：
+
+> (module m racket
+    (provide color)
+    (define color "blue"))
+> (module n racket
+    (require 'm)
+    (printf "my favorite color is ~a\n" color))
+> (require 'n)
+
+my favorite color is blue
+
+2、rel-string
+
+字符串模块路径是使用UNIX样式约定的相对路径：/是路径分隔符，..指父目录，.指同一目录。rel-string不必以路径分隔符开始或结束。如果路径没有后缀，“.rkt”会自动添加。
+
+路径是相对于封闭文件，如果有的话，或者是相对于当前目录。（更确切地说，路径是相对于(current-load-relative-directory)的值），这是在加载文件时设置的。
+
+模块基础（Module Basics）使用相对路径显示了示例。
+
+如果一个相对路径以”.ss”后缀结尾，它会被转换成”.rkt”。如果实现引用模块的文件实际上以”.SS”结束，当试图加载文件（但“.rkt”后缀优先）时后缀将被改回来。这种双向转换提供了与Racket旧版本的兼容。
+
+3、id
+
+一个模块的路径是一个引用标识符，引用一个已经安装的库。id约束只包含ASCII字母、ASCII数字、+、-、_和/，/分隔标识符内的路径元素。元素指的是集合（collection）和子集合（sub-collection），而不是目录和子目录。
+
+这种形式的一个例子是racket/date。它是指模块的源是“racket”集合中的“date.rkt”文件，它被安装为Racket的一部分。“.rkt”后缀被自动添加。
+
+这种形式的另一个例子是racket，在初始引入时它通常被使用。路径racket是对racket/main的简写；当一个id没有/，那么/main自动被添加到结尾。因此，racket或racket/main是指其源是“racket”集合里的“main.rkt”文件的模块。
+
+例如：
+
+> (module m racket
+    (require racket/date)
+  
+    (printf "Today is ~s\n"
+            (date->string (seconds->date (current-seconds)))))
+> (require 'm)
+
+Today is "Monday, October 30th, 2017"
+
+当一个模块的完整路径以”.rkt”结束，如果没有这样的文件存在但有一个“.ss”后缀的文件存在，那么这个“.ss”后缀是是自动替代的。这种转换提供了与旧版本的Racket的兼容。
+
+4、(lib rel-string)
+
