@@ -51,3 +51,113 @@ Today is "Monday, October 30th, 2017"
 
 4、(lib rel-string)
 
+像一个不带引号的标识符的路径，但表示为一个字符串而不是标识符。另外，rel-string可以以一个文件的后缀结束，在这种情况下，“.rkt”不是自动添加。
+
+这种形式的例子包括(lib "racket/date.rkt")和(lib "racket/date")，这是相当于racket/date。其他的例子包括(lib "racket")和(lib "racket/main")，都相当于racket。
+
+例如：
+
+> (module m (lib "racket")
+    (require (lib "racket/date.rkt"))
+  
+    (printf "Today is ~s\n"
+            (date->string (seconds->date (current-seconds)))))
+> (require 'm)
+
+Today is "Monday, October 30th, 2017"
+
+5、(planet id)
+
+访问通过行星服务器分发的第三方库。首先需要下载库，然后使用本地副本。
+
+id编码了用/分隔的几条信息：包所有者，然后是可选的版本信息的包名，以及一个特定的库与包的可选路径。像id作为一个lib路径的简写，一个".rkt"后缀被自动添加，并且当子路径没有提供时/main用作路径。
+
+例如：
+
+> (module m (lib "racket")
+    ; Use "schematics"'s "random.plt" 1.0, file "random.rkt":
+    (require (planet schematics/random:1/random))
+    (display (random-gaussian)))
+> (require 'm)
+
+0.9050686838895684
+
+与其它形式，一个用“.ss”作为文件结尾的实现可以自动取代如果没有用".rkt"执行文件结尾存在。
+
+6、(planet package-string)
+
+就像planet的符号形式，但使用的是字符串而不是标识符。另外，package-string可以一个文件的后缀结束，在这种情况下，“.rkt”不添加。
+
+与其他形式一样，当以”.SS”文件结尾的实现可以自动取代时，如果没有以”.rkt”执行文件结尾存在，“.SS”扩展为“.rkt”。
+
+7、(planet rel-string (user-string pkg-string vers ...))
+ 
+vers	 	=	 	nat
+ 	 	|	 	(nat nat)
+ 	 	|	 	(= nat)
+ 	 	|	 	(+ nat)
+ 	 	|	 	(- nat)
+
+从行星服务器访问库的更一般形式。在这种一般形式中，行星引用开始时像一个相对路径的库引用，但路径后面是关于库的生产者、包和版本的信息。指定的包是按需下载和安装的。
+
+verse在包的可接受版本中指定了一个约束，其中版本号是非负整数序列，约束确定序列中每个元素的允许值。如果没有为特定元素提供约束，则允许任何版本；特别是，省略所有vers意味着任何版本都可以接受。至少指定一个ver用于强烈推荐。
+
+对于版本约束，普通nat与(+ nat)相同，对应于版本号的相应元素的nat或更高的nat。(start-nat end-nat)匹配范围内的任何start-nat到end-nat，包括，一个(= nat)完全匹配nat。一个(- nat)匹配nat或更低。
+
+例如：
+
+> (module m (lib "racket")
+    (require (planet "random.rkt" ("schematics" "random.plt" 1 0)))
+    (display (random-gaussian)))
+> (require 'm)
+
+0.9050686838895684
+
+自动的".ss"和".rkt"转换作为其它形式添加。
+
+8、(file string)
+
+指定一个文件，其string是一个使用当前平台的约定的相对或绝对路径。此表单不可移植，并且不应当使用一个扁平的、轻便的rel-string满足使用。
+
+自动的".ss"和".rkt"转换作为其它形式添加。
+
+(submod base element ...+)
+ 
+base	 	=	 	module-path
+ 	 	|	 	"."
+ 	 	|	 	".."
+ 	 	 	 	 
+element	 	=	 	id
+ 	 	|	 	".."
+
+是指一个base子模块。elements序列在submod指定了一个子模块名称的路径以到达最终的子模块之间。
+
+例如：
+
+> (module zoo racket
+    (module monkey-house racket
+      (provide monkey)
+      (define monkey "Curious George")))
+> (require (submod 'zoo monkey-house))
+> monkey
+
+"Curious George"
+
+使用“.”作为base在submod代表的外围模块之间。使用“..”作为base相当于使用“.”后跟一个额外的“..”。当一个路径的表(quote id)是指一个子模块，它相当于(submod "." id)。
+
+使用“..”作为一种element取消一个子模块的步骤，有效指定外围模块。例如，(submod "..")是指封闭的子模块的模块，路径出现在其中。
+
+例如：
+
+> (module zoo racket
+    (module monkey-house racket
+      (provide monkey)
+      (define monkey "Curious George"))
+    (module crocodile-house racket
+      (require (submod ".." monkey-house))
+      (provide dinner)
+      (define dinner monkey)))
+> (require (submod 'zoo crocodile-house))
+> dinner
+
+"Curious George"
