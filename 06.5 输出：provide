@@ -1,0 +1,43 @@
+6.5 输出：provide
+
+默认情况下，一个模块的所有定义对模块都是私有的。provide表指定定义，以使在模块require的地方可获取。
+
+(provide provide-spec ...)
+
+一个provide表只能出现在模块级（即一个module的当前主体）中。在一个单一的provide中指定多个provide-spec，那和使用多个provide，其每一个有单一的provide-spec，明显是一样的。
+
+每个标识符最多可以从模块中导出一次，遍及模块中的所有provide。更确切地说，每个导出的外部名称必须是不同的；相同的内部绑定可以用不同的外部名称多次导出。
+
+允许的provide-spec形式是递归定义的：
+
+1、identifier
+
+在最简单的形式中，provide-spec标明一个绑定，它在被导出的模块内。绑定可以来自于局部定义，也可以来自于一个导入。
+
+(rename-out [orig-id export-id] ...)
+
+一个rename-out表类似于只指定一个标识符，但这个导出绑定orig-id是给定一个不同的名称，export-id，给导入模块。
+
+2、(struct-out struct-id)
+
+一个结构表导出由(struct struct-id ....)创建的绑定。
+
+3、(all-defined-out)
+
+all-defined-out简写导出所有的绑定，其定义在导出模块中（与导入相反）。
+
+all-defined-out简写的使用通常是被阻止的，因为它不太清楚模块的实际导出，而且因为Racket程序员习惯于认为可以自由地将定义添加到模块，而不影响其公共接口（在all-defined-out被使用时候都不是这样）。
+
+4、(all-from-out module-path)
+
+all-from-out简写输出模块中的所有绑定，该模块使用一个基于module-path的require-spec导入。
+
+尽管不同的module-path可以引用同一个基于文件的模块，但是带all-from-out的重复导出是明确基于module-path引用，而不是实际引用的模块。
+
+5、(except-out provide-spec id ...)
+
+就像provide-spec，但省略每个id的导出，其中id是要省略的绑定的外部名称。
+
+6、(prefix-out prefix-id provide-spec)
+
+就像provide-spec，但为每个导出的绑定添加prefix-id到外部名称的开头。
