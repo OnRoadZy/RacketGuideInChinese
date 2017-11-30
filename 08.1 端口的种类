@@ -18,7 +18,7 @@
 > (display "howdy" out)
 > (close-output-port out)
 
-作为不得不匹配（）的替代，绝大多数Racket程序员会使用call-with-input-file和call-with-output-file，接收一个函数作为参数以执行希望的操作。这个函数（）
+作为不得不将打开/关闭函数调用匹配起来的替代，绝大多数Racket程序员会使用call-with-input-file和call-with-output-file，接收一个函数作为参数以执行希望的操作。这个函数仅获取端口参数，操作将自动打开及关闭（端口）。
 
 例子：
 > (call-with-output-file "data"
@@ -53,7 +53,7 @@ TCP连接：tcp-connect为客户端的TCP通信创建了输入与输出端口。
 > (read-line s-in)
 #<eof>
 
-进程管道：subprocess启动一操作系统级进程并返回与子进程输入、输出、错误相对应的端口。（）
+进程管道：subprocess启动一操作系统级进程并返回与对应子进程stdin/stdout/stderr的端口。（这三种端口是连接到子进程的确定已存在的端口，不需要创建。）
 
 例子：
 > (define-values (p stdout stdin stderr)
