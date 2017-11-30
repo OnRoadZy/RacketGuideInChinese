@@ -104,8 +104,8 @@
     6.2.3 子模块（OK）
     6.2.4 main和test子模块（OK）
   6.3 模块的路径（OK）
-  6.4 导入：require（……）
-  6.5 提供：provide
+  6.4 导入：require（OK）
+  6.5 输出：provide（……）
   6.6 赋值和重定义
 
 7 合约
