@@ -1,0 +1,77 @@
+6.4 导入：require
+
+从另一个模块导入require表。一个require表可以出现在一个模块中，在这种情况下，它将指定模块的绑定引入到导入的模块中。一个require表也可以出现在顶层，在这种情况下，既导入绑定也实例化指定的模块；即，它对指定模块的主体和表达式求值，如果他们还没有被求值。
+
+单个的require可以同时指定多个导入：
+
+(require require-spec ...)
+
+在一个单一的require表里指定多个require-spec，从本质上与使用多个require，每个单独包含一个单一的require-spec是相同的。区别很小，且局限于顶层：一个独立的require可以导入一个给定标识符最多一次，而一个单独的require可以代替以前require的绑定（都是只局限于顶层，在一个模块之外）。
+
+require-spec的允许形态是递归定义的：
+
+1、module-path
+
+在最简单的形式中，require-spec是一个module-path（如前一节《模块路径》（Module Paths）中定义的）。在这种情况下，require所引入的绑定通过provide声明来确定，其中在每个模块通过各个module-path引用。
+
+例如：
+
+> (module m racket
+    (provide color)
+    (define color "blue"))
+> (module n racket
+    (provide size)
+    (define size 17))
+> (require 'm 'n)
+> (list color size)
+
+'("blue" 17)
+
+2、
+(only-in require-spec id-maybe-renamed ...)
+ 
+id-maybe-renamed	 	=	 	id
+ 	 	|	 	[orig-id bind-id]
+
+一个only-in表限制绑定设置，它将通过require-spec引入。此外，only-in选择重命名每个绑定，它被保护：在[orig-id bind-id]表里，orig-id是指一个被require-spec隐含的绑定，并且bind-id是这个在导入上下文中将被绑定的名称，以代替orig-id。
+
+例如：
+
+> (module m (lib "racket")
+    (provide tastes-great?
+             less-filling?)
+    (define tastes-great? #t)
+    (define less-filling? #t))
+> (require (only-in 'm tastes-great?))
+> tastes-great?
+
+#t
+> less-filling?
+less-filling?: undefined;
+ cannot reference undefined identifier
+ 
+> (require (only-in 'm [less-filling? lite?]))
+> lite?
+#t
+
+3、(except-in require-spec id ...)
+
+这种形式是only-in的补充：它从以require-spec指定的集合中排除指定的绑定。
+
+4、(rename-in require-spec [orig-id bind-id] ...)
+
+这种形式支持类似于only-in的重命名，但从require-spec中分离单独的标识符，它们没有作为一个orig-id提交。
+
+5、(prefix-in prefix-id require-spec)
+
+这是一个重命名的简写，prefix-id添加到用require-spec指定的每个标识符的前面。
+
+除了only-in、except-in、rename-in和prefix-in表可以嵌套以实现更复杂的导入绑定操作。例如,
+
+(require (prefix-in m: (except-in 'm ghost)))
+
+导入m输出的所有绑定，除ghost绑定之外，并带用m前缀的局部名字：
+
+等价地，prefix-in可以被应用在except-in之前，只是带except-in的省略是用m前缀指定：
+
+(require (except-in (prefix-in m: 'm) m:ghost))
