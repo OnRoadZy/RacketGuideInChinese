@@ -17,7 +17,7 @@ Ouch!
 
 当前端口这类函数实际上是参数，代表它们的值能够通过parameterize设置。
 
-（）
+查看 动态绑定：parameterize 一节以获取参数的介绍
 
 例子：
 > (let ([s (open-output-string)])
