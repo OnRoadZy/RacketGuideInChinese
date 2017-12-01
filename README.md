@@ -27,4 +27,5 @@ Racket指南（中文翻译）
 
 贡献者名单：(按加入先后)
 
-OnRoadZy
+OnRoadZy（整体）
+InvisibleMoon(第8章8.18.6节)
