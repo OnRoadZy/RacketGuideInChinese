@@ -1,0 +1,28 @@
+如果你想处理文件中独立的各行，你可以使用in-lines：
+
+> (define (upcase-all in)
+    (for ([l (in-lines in)])
+      (display (string-upcase l))
+      (newline)))
+> (upcase-all (open-input-string
+               (string-append
+                "Hello, World!\n"
+                "Can you hear me, now?")))
+HELLO, WORLD!
+CAN YOU HEAR ME, NOW?
+
+如果你想确定“hello”是否在文件中存在，你可以搜索独立各行，但是更简便的方法是对流应用一正则表达式（查看正则表达式章节）：
+
+> (define (has-hello? in)
+    (regexp-match? #rx"hello" in))
+> (has-hello? (open-input-string "hello"))
+#t
+> (has-hello? (open-input-string "goodbye"))
+#f
+
+如果你想将一个端口拷贝至另一个，使用来自racket/port的copy-port，它能够在很多的数据可用时有效传输大的块，也能够在小的块全部就绪时立刻传输：
+
+> (define o (open-output-string))
+> (copy-port (open-input-string "broom") o)
+> (get-output-string o)
+"broom"

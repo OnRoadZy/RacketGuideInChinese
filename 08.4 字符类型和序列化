@@ -1,0 +1,42 @@
+prefab类型（查看预置结构类型章节）自动支持序列化：它们可被写入输出流，其副本可被由输入流读入：
+> (define-values (in out) (make-pipe))
+> (write #s(sprout bean) out)
+> (read in)
+'#s(sprout bean)
+
+使用struct创建的其它结构类型，提供较prefab类型更多的抽象，通常使用#<....>记号（对于不透明结构类型）或使用#(....)矢量记号（对于透明结构类型）作为输出。两种的输出结果都不能以结构类型反向读入。
+> (struct posn (x y))
+> (write (posn 1 2))
+#<posn>
+> (define-values (in out) (make-pipe))
+> (write (posn 1 2) out)
+> (read in)
+UNKNOWN::0: read: bad syntax `#<'
+> (struct posn (x y) #:transparent)
+> (write (posn 1 2))
+#(struct:posn 1 2)
+> (define-values (in out) (make-pipe))
+> (write (posn 1 2) out)
+> (define v (read in))
+> v
+'#(struct:posn 1 2)
+> (posn? v)
+#f
+> (vector? v)
+#t
+
+serializable-struct定义了能够被序列化为值，可供write/read写入或存储的类型。序列化的结果可被反序列化为原始结构类的实例。序列化形式与函数经由racket/serialize提供。
+
+例子：
+> (require racket/serialize)
+> (serializable-struct posn (x y) #:transparent)
+> (deserialize (serialize (posn 1 2)))
+(posn 1 2)
+> (write (serialize (posn 1 2)))
+((3) 1 ((#f . deserialize-info:posn-v0)) 0 () () (0 1 2))
+> (define-values (in out) (make-pipe))
+> (write (serialize (posn 1 2)) out)
+> (deserialize (read in))
+(posn 1 2)
+
+除了struct绑定的名字外，serializable-struct绑定具有反序列化信息的标识符，会自动由模块上下文提供反序列化标识符。当值被反序列化时，反序列化标识符会经由反射被访问。

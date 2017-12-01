@@ -1,0 +1,75 @@
+不同的函数可创建不同类型的端口，这里有一些例子：
+
+文件：函数open-output-file打开一个可供写入的文件，而open-input-file打开一文件以读取其内容。
+
+例子：
+> (define out (open-output-file "data"))
+> (display "hello" out)
+> (close-output-port out)
+> (define in (open-input-file "data"))
+> (read-line in)
+"hello"
+> (close-input-port in)
+
+如果一个文件已经存在，open-output-file的默认行为是抛出一个异常。提供了选项如#:exists 'truncate 或 #:exists 'update来重写或更新文件。
+
+例子：
+> (define out (open-output-file "data" #:exists 'truncate))
+> (display "howdy" out)
+> (close-output-port out)
+
+作为不得不将打开/关闭函数调用匹配起来的替代，绝大多数Racket程序员会使用call-with-input-file和call-with-output-file，接收一个函数作为参数以执行希望的操作。这个函数仅获取端口参数，操作将自动打开及关闭（端口）。
+
+例子：
+> (call-with-output-file "data"
+                          #:exists 'truncate
+                          (lambda (out)
+                            (display "hello" out)))
+> (call-with-input-file "data"
+                        (lambda (in)
+                          (read-line in)))
+"hello"
+
+字符串：open-output-string创建一个将数据堆入字符串的端口，get-output-string将累积而成的字符串解压。open-input-string创建一个用于从字符串读取的端口。
+
+例子:
+> (define p (open-output-string))
+> (display "hello" p)
+> (get-output-string p)
+"hello"
+> (read-line (open-input-string "goodbye\nfarewell"))
+"goodbye"
+
+TCP连接：tcp-connect为客户端的TCP通信创建了输入与输出端口。tcp-listen创建了经由tcp-accept接收连接的服务器。
+
+例子：
+> (define server (tcp-listen 12345))
+> (define-values (c-in c-out) (tcp-connect "localhost" 12345))
+> (define-values (s-in s-out) (tcp-accept server))
+> (display "hello\n" c-out)
+> (close-output-port c-out)
+> (read-line s-in)
+"hello"
+> (read-line s-in)
+#<eof>
+
+进程管道：subprocess启动一操作系统级进程并返回与对应子进程stdin/stdout/stderr的端口。（这三种端口是连接到子进程的确定已存在的端口，不需要创建。）
+
+例子：
+> (define-values (p stdout stdin stderr)
+    (subprocess #f #f #f "/usr/bin/wc" "-w"))
+> (display "a b c\n" stdin)
+> (close-output-port stdin)
+> (read-line stdout)
+"       3"
+> (close-input-port stdout)
+> (close-input-port stderr)
+
+内部管道：make-pipe返回两个端口代表一个管道的双端。这种类型的管道属于Racket内部，与用于不同进程间通信的系统级管道无关。
+
+例子：
+> (define-values (in out) (make-pipe))
+> (display "garbage" out)
+> (close-output-port out)
+> (read-line in)
+"garbage"
