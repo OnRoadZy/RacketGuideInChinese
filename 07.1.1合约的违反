@@ -1,0 +1,19 @@
+7.1.1合约的违反
+
+如果我们将amount绑定到一个非正的数字，
+
+#lang racket
+ 
+(provide (contract-out [amount positive?]))
+ 
+(define amount 0)
+
+然后，当需要模块时，监控系统发出违反合同的信号，并指责模块违反了承诺。
+
+更大的错误是将amount绑定到非数值上：
+
+#lang racket
+ 
+(provide (contract-out [amount positive?]))
+ 
+(define amount 'amount)
