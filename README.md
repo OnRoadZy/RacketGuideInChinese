@@ -3,7 +3,7 @@
 
 欢迎愿意参与的朋友一起来完成这个项目，给想学习Racket的朋友提供一个学习工具。
 
-[ 原始页面网址：https://docs.racket-lang.org/guide/index.html ](https://docs.racket-lang.org/guide/index.html)
+[ 英文的原始网页：https://docs.racket-lang.org/guide/index.html ](https://docs.racket-lang.org/guide/index.html)
 ---
 ## 文件规则：
 1. 文件名称为：小节编号（如：2.2.1），后边跟小节名称。编号超过10的，一律采用两位数表示（如：03.03）。
