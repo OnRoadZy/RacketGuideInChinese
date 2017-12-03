@@ -29,4 +29,6 @@ Racket指南（中文翻译）
 
 OnRoadZy（整体）
 
-InvisibleMoon(第8章8.18.6节)
+InvisibleMoon(第8章8.1～8.6节)
+
+折智公子  644279510(11 迭代和推导)
