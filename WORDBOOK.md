@@ -7,4 +7,7 @@
 - server 服务器
 - client 客户机
 - contract 合约（有合同、约定双重字面意义，更符合编程带约定的工作内涵）
-
+- domain 域
+- range 范围
+- S-expression S表达式
+- describe 叙述
