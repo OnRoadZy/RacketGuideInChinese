@@ -7,21 +7,22 @@
 - export 导出
 - describe 叙述
 ## 内置数据名称
-- struct 结构
-- Boolean 布尔值
-- Number 数值
-- Character 字符
-- Strings 字符串
-- Byte 字节
-- Symbol 符号
+- boolean 布尔值
+- number 数值
+- character 字符
+- strings 字符串
+- byte 字节
+- symbol 符号
 - keyword 关键字
-- Pair 配对
-- List 列表
-- Vector 向量
-- Hash Table 哈希表
-- Box 格子（不翻译为“盒子”是因为我认为数据是平面、线性的，用“格子”更贴切）
-- Void 空值
-- Undefined 未定义值
+- pair 配对
+- list 列表
+- vector 向量
+- hash Table 哈希表
+- box 格子（不翻译为“盒子”是因为我认为数据是平面、线性的，用“格子”更贴切）
+- void 空值
+- undefined 未定义值
+## 扩展数据类型
+- struct 结构
 ## 程序术语
 - module 模块
 - function 函数
