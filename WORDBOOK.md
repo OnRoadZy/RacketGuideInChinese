@@ -6,6 +6,8 @@
 - sequence 序列
 - export 导出
 - describe 叙述
+- predicate 断言
+- consume 接受
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
@@ -29,6 +31,9 @@
 - server 服务器
 - client 客户机（不翻译为客户端是因为客户机可以和服务器对应，更合理）
 - contract 合约（有合同、约定双重字面意义，更符合编程带约定的工作内涵）
+- contract-monitoring system 合约监控系统
 - domain 域
 - range 范围
 - S-expression S表达式
+- regular expression 正则表达式
+- contract-implementing function 合约执行函数
