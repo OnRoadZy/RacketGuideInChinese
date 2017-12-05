@@ -16,8 +16,8 @@
 8. 翻译内容所涉及到的名词术语统一的翻译名称可参考字典文件（[WORDBOOK.md](https://github.com/OnRoadZy/RackGuideInChinese/blob/master/WORDBOOK.md)）内定义内容。目录中的名称译法等同于字典。
 ---
 ## 贡献者名单：(按加入先后)
-|昵称|贡献内容|
+|github|贡献内容|
 |----|------|
 |OnRoadZy|整体|
-|InvisibleMoon|第8章8.1～8.6节|
-|折智公子644279510|11 迭代和推导|
+|InvisibleMoon|第8章～8.6节|
+|wamanter@hotmail.com|第11章～11.01节|
