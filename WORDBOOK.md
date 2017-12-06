@@ -26,6 +26,7 @@
 ## 扩展数据类型
 - struct 结构
 ## 程序术语
+- curried function 咖喱函数（带有临时使用性质的函数，就像当佐料的咖喱一样，这里直接命名为咖喱函数）
 - module 模块
 - function 函数
 - server 服务器
