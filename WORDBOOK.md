@@ -8,6 +8,7 @@
 - describe 叙述
 - predicate 断言
 - consume 接受
+- to blame 归咎于(如：the client is to blame 译为：应归咎于客户机)
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
