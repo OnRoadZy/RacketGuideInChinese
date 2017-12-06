@@ -20,4 +20,4 @@
 |----|------|
 |OnRoadZy|整体|
 |InvisibleMoon|第8章～8.6节|
-|wamanter@hotmail.com|第11章～11.01节|
+|Ghaker|第11章～11.01节|
