@@ -1,0 +1,61 @@
+11.1 序列构造
+
+in-range 函数生成数字序列，给定一个可选的起始数字（默认为0），序列结束前的数字和一个可选的步长（默认为1）。 直接使用非负整数k作为序列是（范围内k）的简写。
+例如：
+> (for ([i 3])
+    (display i))
+
+012
+> (for ([i (in-range 3)])
+    (display i))
+
+012
+> (for ([i (in-range 1 4)])
+    (display i))
+
+123
+> (for ([i (in-range 1 4 2)])
+    (display i))
+
+13
+> (for ([i (in-range 4 1 -1)])
+    (display i))
+
+432
+> (for ([i (in-range 1 4 1/2)])
+    (printf " ~a " i))
+
+ 1  3/2  2  5/2  3  7/2 
+
+in-naturals函数是相似的，除了起始数字必须是一个确切的非负整数（默认为0），步长总是1，没有上限。 for循环只使用in-naturals将永远不会终止，除非正文表达引发异常或以其他方式退出。
+例如：
+> (for ([i (in-naturals)])
+    (if (= i 10)
+        (error "too much!")
+        (display i)))
+
+0123456789
+too much!
+
+stop-before和stop-after函数构造一个给定序列和判断式的新序列。 新序列就像给定的序列，但是在判断式返回true的第一个元素之前或之后立即被截断。
+例如：
+> (for ([i (stop-before "abc def"
+                        char-whitespace?)])
+    (display i))
+
+abc
+
+像in-list，in-vector和in-string这样的序列构造函数只是简单地使用list，vector或string作为序列。 和in-range一样，这些构造函数在给定错误类型的值时会引发异常，并且由于它们会避免运行时调度来确定序列类型，因此可以实现更高效的代码生成; 有关更多信息，请参阅迭代性能。
+例如：
+> (for ([i (in-string "abc")])
+    (display i))
+
+abc
+> (for ([i (in-string '(1 2 3))])
+    (display i))
+
+in-string: contract violation
+
+  expected: string
+
+  given: '(1 2 3)

@@ -1,0 +1,23 @@
+7.1 合约和边界
+
+如同两个商业伙伴之间的合约，软件合约是双方之间的协议。协议规定了从一方传给另一方的每一产品（或价值）的义务和保证。
+
+因此，合约确定了双方之间的边界。当价值跨越边界时，合约监督系统执行合约检查，确保合作伙伴遵守既定合约。
+
+在这种精神下，Racket支持合约主要在模块边界。具体来说，程序员可以附加合约来provide从句，从而对导出值的使用施加约束和承诺。例如，导出说明
+
+#lang racket
+ 
+(provide (contract-out [amount positive?]))
+(define amount ...)
+
+承诺上述模块的所有客户，amount值将始终是正数。合约系统仔细地监测了该模块的义务。每次客户提到amount时，监视器都会检查amount值是否确实是正数。
+
+合约库是建立在Racket语言中内部的，但是如果你想使用racket/base，你可以像这样明确地导入合约库：
+
+#lang racket/base
+(require racket/contract) ;现在我就可以写合约了。
+ 
+(provide (contract-out [amount positive?]))
+
+(define amount ...)

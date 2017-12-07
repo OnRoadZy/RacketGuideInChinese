@@ -1,11 +1,11 @@
 6.1 模块基础知识
 
-每个Racket模块通常驻留在自己的文件中。例如，假设文件“蛋cake.rkt”包含以下模块：
+每个Racket模块通常驻留在自己的文件中。例如，假设文件“cake.rkt”包含以下模块：
 
 "cake.rkt"
 
     #lang racket
-     
+
     (provide print-cake)
      
     ; draws a cake with n candles

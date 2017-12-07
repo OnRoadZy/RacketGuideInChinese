@@ -1,0 +1,30 @@
+7.2.7 解析合约的错误消息
+
+一般来说，每个合约的错误信息由六部分组成：
+
+1、函数或方法的名称结合合约和短语“contract violation”（违反合约）或“broke its contract”（违反合约），这取决于合约是否受到客户机或服务器的违反；例如，在前一个示例中为：
+
+deposit: contract violation
+
+2、对违反合约的准确的哪一方面的描述，
+
+expected: amount
+given: -10
+
+3、完整的合约加上一个方向指明哪个方面被违反，
+
+in: the 1st argument of
+(-> amount any)
+
+4、合约表达的模块（或者更广泛地说，是合同所规定的边界），
+
+contract from: improved-bank-server
+
+5、应归咎于哪个，
+
+blaming: top-level
+(assuming the contract is correct)
+
+6、以及合约出现的源程序定位。
+
+at: eval:5.0
