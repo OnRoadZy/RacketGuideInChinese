@@ -1,0 +1,36 @@
+7.3.3 关键字参数
+
+原来->合约构造函数也包含对关键字参数的支持。例如，考虑这个函数，它创建一个简单的GUI并向用户询问一个“yes-or-no”的问题：
+
+#lang racket/gui
+ 
+(define (ask-yes-or-no-question question
+                                #:default answer
+                                #:title title
+                                #:width w
+                                #:height h)
+  (define d (new dialog% [label title] [width w] [height h]))
+  (define msg (new message% [label question] [parent d]))
+  (define (yes) (set! answer #t) (send d show #f))
+  (define (no) (set! answer #f) (send d show #f))
+  (define yes-b (new button%
+                     [label "Yes"] [parent d]
+                     [callback (λ (x y) (yes))]
+                     [style (if answer '(border) '())]))
+  (define no-b (new button%
+                    [label "No"] [parent d]
+                    [callback (λ (x y) (no))]
+                    [style (if answer '() '(border))]))
+  (send d show #t)
+  answer)
+ 
+(provide (contract-out
+          [ask-yes-or-no-question
+           (-> string?
+               #:default boolean?
+               #:title string?
+               #:width exact-integer?
+               #:height exact-integer?
+               boolean?)]))
+
+ask-yes-or-no-question的合同使用->，同样的方式，lambda（或基于define的函数）允许关键字在函数正式参数之前，->允许关键字先于函数合约的参数合约。在这种情况下，合约表明ask-yes-or-no-question必须得到四个关键字参数，各个关键字为#:default、#:title、#:width和#:height。在函数定义中，函数中的关键字之间的->相对顺序对函数的客户机并不重要；只有没有关键字的参数合约的相对顺序。 
