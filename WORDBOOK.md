@@ -31,6 +31,9 @@
 - curried function 咖喱函数（带有临时使用性质的函数，就像当佐料的咖喱一样，这里直接命名为咖喱函数）
 - module 模块
 - function 函数
+- required argument 必需参数
+- optional argument 可选参数
+- rest argument 剩余参数
 - method 方法
 - server 服务器
 - client 客户机（不翻译为客户端是因为客户机可以和服务器对应，更合理）
