@@ -4,6 +4,7 @@
 ## 常用词
 - Examples: 例如：（感觉这样翻译比“例子：”、“举例：”更贴近口语）
 - sequence 序列
+- Shorthand 速记
 - export 导出
 - dissect 解析
 - describe 叙述
