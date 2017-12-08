@@ -10,3 +10,23 @@
                    (append old-children (list child))
                    (send parent get-children))))])
 
+它表示函数接受单个参数，命名为parent并且parent必须是匹配接口area-container-window<%>。
+
+范围合约确保函数只通过在列表前面添加一个新的子代来修改parent的子类。这是通过使用_代替正常的标识符，它告诉合约库的范围合约并不依赖于任何结果的值，因此合约计算表达式后，_库在函数被调用时，而不是返回时。因此，调用get-children方法之前发生在合约下的函数调用。当合约下的函数返回时，它的结果作为child传递，并且合约确保函数返回后的孩子与函数调用之前的孩子相同，但是在列表前面还有一个孩子。
+
+要看一个集中在这一点上的无实用价值的示例的差异，请考虑这个程序：
+
+#lang racket
+(define x '())
+(define (get-x) x)
+(define (f) (set! x (cons 'f x)))
+(provide
+ (contract-out
+  [f (->i () [_ (begin (set! x (cons 'ctc x)) any/c)])]
+  [get-x (-> (listof symbol?))]))
+
+如果你需要这个模块，调用f，然后get-x结果会'(f ctc)。相反，如果f的合同是
+
+(->i () [res (begin (set! x (cons 'ctc x)) any/c)])
+
+（只改变下划线res），然后get-x结果会是'(ctc f)。
