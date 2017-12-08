@@ -1,0 +1,12 @@
+7.3.7 状态变化的检查
+
+->i合约的组合也可以确保函数按照一定的约束只修改状态。例如，考虑这个合约（它是从框架中函数preferences:add-panel首选项中添加的略微简化的版本）：
+
+(->i ([parent (is-a?/c area-container-window<%>)])
+      [_ (parent)
+       (let ([old-children (send parent get-children)])
+         (λ (child)
+           (andmap eq?
+                   (append old-children (list child))
+                   (send parent get-children))))])
+
