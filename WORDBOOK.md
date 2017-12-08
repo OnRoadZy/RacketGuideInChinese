@@ -46,3 +46,4 @@
 - S-expression S表达式
 - regular expression 正则表达式
 - contract-implementing function 合约执行函数
+- clause 从句
