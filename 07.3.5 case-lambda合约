@@ -1,0 +1,24 @@
+7.3.5 case-lambda合约
+
+用case-lambda定义的函数可能对其参数施加不同的约束，这取决于其提供了多少。例如，report-cost函数可以将一对数字或字符串转换为一个新字符串：
+
+(define report-cost
+  (case-lambda
+    [(lo hi) (format "between $~a and $~a" lo hi)]
+    [(desc) (format "~a of dollars" desc)]))
+
+ 
+> (report-cost 5 8)
+"between $5 and $8"
+> (report-cost "millions")
+"millions of dollars"
+
+合约对这样的函数用case->构成组合，这种结合对多个函数合约是必要的：
+
+(provide (contract-out
+          [report-cost
+           (case->
+            (integer? integer? . -> . string?)
+            (string? . -> . string?))]))
+
+如你所见，report-cost合约合并了两个函数合约，这与解释其函数所需的子句一样多。
