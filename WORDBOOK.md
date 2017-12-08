@@ -11,6 +11,7 @@
 - predicate 断言
 - consume 接受
 - to blame 归咎于(如：the client is to blame 译为：应归咎于客户机)
+- mandatory 强制（如：mandatory argument强制参数、mandatory keywords强制关键字）
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
