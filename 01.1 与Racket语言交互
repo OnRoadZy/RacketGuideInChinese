@@ -10,6 +10,6 @@ DrRacket底部的文本区和racket的命令行程序（启动时没有选择）
 > "Hello, world!"
 "Hello, world!"
 
-Racket使用圆括号包装较大的表达式——几乎任何一种表达式，而不是简单的常数。例如，函数调用被写入：打括号，函数名，参数表达式，闭括号。下面的表达式用参数调用"the boy out of the country"，4，and7调用内置函数substring：
+Racket使用圆括号包装较大的表达式——几乎任何一种表达式，而不是简单的常数。例如，函数调用被写入：大括号，函数名，参数表达式，闭括号。下面的表达式用参数调用"the boy out of the country"，4，and7调用内置函数substring：
 > (substring "the boy out of the country" 4 7)
 "boy"
