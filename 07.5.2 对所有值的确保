@@ -1,0 +1,42 @@
+7.5.2 对所有值的确保
+
+这《如何设计程序》（How to Design Programs）本书教授了posn应该只包含在它们两个字段里的数值。有了合约，我们将执行以下非正式数据定义：
+
+#lang racket
+(struct posn (x y))
+ 
+(provide (contract-out
+          [struct posn ((x number?) (y number?))]
+          [p-okay posn?]
+          [p-sick posn?]))
+ 
+(define p-okay (posn 10 20))
+(define p-sick (posn 'a 'b))
+
+这个模块导出整个结构的定义：posn、posn?、posn-x、posn-y、set-posn-x!和set-posn-y!。 每个函数强制执行或承诺posn结构的这两个字段是数值——当这些值在模块范围内传递时。因此，如果一个客户机对10和'a调用posn，合约系统就发出违反合约的信号。
+
+然而，posn模块内的p-sick的创建，并不违反合约。posn函数是在内部使用，所以'a和'b不跨约模块范围。同样，当p-sick跨越posn的范围时，合约承诺了posn?，别的什么也没有。特别是，p-sick的字段数是数值这个检查完全不需要。
+
+对模块范围的合约检查意味着p-okay和p-sick从客户机的角度看起来相似，直到客户机引用以下片断：
+
+#lang racket
+(require lang/posn)
+ 
+... (posn-x p-sick) ...
+
+使用posn-x是客户机可以找到一个posn包含x字段的唯一途径。对posn-x应用程序发送p-sick回传给posn模块并且结果值——'a这里——回传给客户机，再跨越模块范围。在这一点上，合约系统发现承诺被打破了。具体来说，posn-x没有返回一个数值但却返回了一个符号，因此应归咎于它。
+
+这个具体的例子表明，对违背合约的解释并不总是指明错误的来源。好消息是，错误位于posn模块。坏消息是这种解释是误导性的。虽然这是真的，posn-x产生一个符号而不是一个数值，它是程序员的责任，他从符号创建了posn，即程序员添加了以下内容
+
+(define p-sick (posn 'a 'b))
+
+到模块中。所以，当你在寻找基于违反合同的bug时，记住这个例子。
+
+如果我们想修复p-sick的合约这样的错误，它是当sick被导出时被引发的，一个单独的改变就足够了：
+
+(provide
+ (contract-out
+  ...
+  [p-sick (struct/c posn number? number?)]))
+
+更确切地说，代替作为一个普通的posn?导出p-sick的方式，我们使用struct/c合约对组件进行强制约束。
