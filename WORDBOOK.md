@@ -15,6 +15,7 @@
 - mandatory 强制（如：mandatory argument强制参数、mandatory keywords强制关键字）
 - signal 依赖
 - shape 形态
+- call 调用
 - flow across 传递
 - module boundary 模块范围内
 ## 内置数据名称
