@@ -9,7 +9,7 @@
  
 (extract "the cat out of the bag")
 
-那么它是一个在运行时打印“cat” 的完整的程序。你可以在DrRacket中运行程序或使用在racket中使用enter!，但如果程序被保存在‹src-filename›中，你也可以从命令行运行
+那么它是一个在运行时打印“cat” 的完整程序。你可以在DrRacket中运行程序或在racket中使用enter!，但如果程序被保存在‹src-filename›中，你也可以从命令行运行
 
 racket ‹src-filename›
 
