@@ -1,0 +1,13 @@
+7.5.1 对特定值的确保
+
+如果你的模块定义了一个变量为一个结构，那么你可以使用struct/c指定结构的形态：
+
+#lang racket
+(require lang/posn)
+ 
+(define origin (make-posn 0 0))
+ 
+(provide (contract-out
+          [origin (struct/c posn zero? zero?)]))
+
+在这个例子中，该模块导入一个代表位置的库，它导出了一个posn结构。其中的posns创建并导出所代表的网格起点，即(0,0)。
