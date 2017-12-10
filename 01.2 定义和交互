@@ -1,6 +1,6 @@
 1.2 定义和交互
 
-你可以通过使用define表像substring那样定义自己的功能，像这样：
+你可以通过使用define表像substring那样定义自己的函数，像这样：
 
 (define (extract str)
   (substring str 4 7))
