@@ -5,6 +5,7 @@
 - Examples: 例如：（感觉这样翻译比“例子：”、“举例：”更贴近口语）
 - sequence 序列
 - Shorthand 速记
+- load 加载
 - import 导入
 - export 导出
 - access 存取（这个词有保存、读取双功能，不译作访问是为了传达的意思更明确）
