@@ -9,7 +9,6 @@
 - access 存取（这个词有保存、读取双功能，不译作访问是为了传达的意思更明确）
 - dissect 解析
 - describe 叙述
-- predicate 断言
 - consume 接受
 - to blame 归咎于(如：the client is to blame 译为：应归咎于客户机)
 - mandatory 强制（如：mandatory argument强制参数、mandatory keywords强制关键字）
@@ -51,3 +50,5 @@
 - clause 从句
 - indy dependent contract 印依赖合约
 - element 元素
+- predicate 断言
+- field 字段
