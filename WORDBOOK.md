@@ -6,6 +6,7 @@
 - sequence 序列
 - Shorthand 速记
 - export 导出
+- access 存取
 - dissect 解析
 - describe 叙述
 - predicate 断言
