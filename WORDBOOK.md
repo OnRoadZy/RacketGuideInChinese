@@ -18,6 +18,8 @@
 - call 调用
 - flow across 传递
 - module boundary 模块范围内
+- produce 产生
+- create 创建
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
