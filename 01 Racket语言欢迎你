@@ -19,4 +19,4 @@ Racket的主要工具是包括：
 
 然后单击“运行”（run）按钮的上方的文本区。DrRacket就明白你的意思在Racket执行正常变体的工作（相对于较小的racket/base或许多其他的可能性）。
 
-如果你使用DrRacket之前已经使用了其它以#lang开始，那么DrRacket会记得你上次使用的语言，而不是从#lang推断的语言。在这种情况下，使用"语言|选择语言……"（Language|Choose Language…）菜单项去改变。在出现的对话框中，选择第一项，它告诉DrRacket使用通过#lang申明在源程序中的语言。仍然要把把#lang放在文本区域的顶部的。
+如果你使用DrRacket之前已经使用了以#lang开始的其它语言，那么DrRacket会记得你上次使用的语言，而不是从#lang推断的语言。在这种情况下，使用"语言|选择语言……"（Language|Choose Language…）菜单项去改变。在出现的对话框中，选择第一项，它告诉DrRacket使用通过#lang申明在源程序中的语言。仍然要把把#lang放在文本区域的顶部的。
