@@ -1,0 +1,81 @@
+7.5.3 检查数据结构的特性
+
+用struct/c编写的合约会立即检查数据结构的字段，但是有时这会对程序本身的性能造成灾难性的影响，而这个程序本身并不检查整个数据结构。
+
+作为一个例子，考虑二叉搜索树搜索算法。一个二叉搜索树就像一个二叉树，除了这些数值被组织在树中，以便快速搜索树。特别是，对于树中的每个内部节点，左边子树中的所有数值都小于节点中的数值，而右子树中的所有数值都大于节点中的数值。
+
+我们可以实现搜索函数in?，它利用了二叉搜索树结构的优越性。
+
+#lang racket
+ 
+(struct node (val left right))
+ 
+; determines if `n' is in the binary search tree `b',
+; exploiting the binary search tree invariant
+(define (in? n b)
+  (cond
+    [(null? b) #f]
+    [else (cond
+            [(= n (node-val b))
+             #t]
+            [(< n (node-val b))
+             (in? n (node-left b))]
+            [(> n (node-val b))
+             (in? n (node-right b))])]))
+ 
+; a predicate that identifies binary search trees
+(define (bst-between? b low high)
+  (or (null? b)
+      (and (<= low (node-val b) high)
+           (bst-between? (node-left b) low (node-val b))
+           (bst-between? (node-right b) (node-val b) high))))
+ 
+(define (bst? b) (bst-between? b -inf.0 +inf.0))
+ 
+(provide (struct-out node))
+(provide (contract-out
+          [bst? (any/c . -> . boolean?)]
+          [in? (number? bst? . -> . boolean?)]))
+
+在一个完整的二叉搜索树中，这意味着in?函数只需探索一个对数节点。
+
+对in?的合约保证其输入是二叉搜索树。但经过仔细的思考发现，该合约违背了二叉搜索树算法的目的。特别是，考虑到in?函数内部的cond。这是in?函数得到它的速度的地方：它避免在每次递归调用时搜索整个子树。现在把它与bst-between?函数相比。在这种情况下，它返回#t，它遍历整个树，意味in?的加速没有实现。
+
+为了解决这个问题，我们可以采用一种新的策略来检查二叉搜索树合约。特别是，如果我们只检查了in?接受的节点上的合约，我们仍然可以保证树至少部分地成形了，但是没有改变复杂性。
+
+要做到这一点，我们需要使用struct/dc定义bst-between?。像struct/c一样，struct/dc定义了一个结构的合约。与struct/c不同，它允许字段被标记为惰性，这样当匹配选择器被调用时，才检查这些合约。此外，它不允许将可变字段标记为惰性。
+
+struct/dc表接受结构的每个字段的一个合约，并返回一个结构的合约。更有趣的是，struct/dc允许我们编写依赖的合约，也就是说，某些字段上的合约依赖于其它字段的值。我们可以用这个去定义二叉搜索树合约：
+
+#lang racket
+ 
+(struct node (val left right))
+ 
+; determines if `n' is in the binary search tree `b'
+(define (in? n b) ... as before ...)
+ 
+; bst-between : number number -> contract
+; builds a contract for binary search trees
+; whose values are between low and high
+(define (bst-between/c low high)
+  (or/c null?
+        (struct/dc node [val (between/c low high)]
+                        [left (val) #:lazy (bst-between/c low val)]
+                        [right (val) #:lazy (bst-between/c val high)])))
+ 
+(define bst/c (bst-between/c -inf.0 +inf.0))
+ 
+(provide (struct-out node))
+(provide (contract-out
+          [bst/c contract?]
+          [in? (number? bst/c . -> . boolean?)]))
+
+一般来说，每个struct/dc的使用都必须命名字段，然后为每个字段指定合约。在上面的val字段是一个接受low与high之间的值的合约。left和right的字段依赖于它们的第二个子表达式所表示的val值。他们也用#:lazy关键字标记，以表明他们只有当合适的存取被结构实例调用应该被检查。它们的合约是通过递归调用bst-between/c函数来构建的。综合起来，这个合约保证了bst-between?函数在原始示例中检查同样的事情，但这里的检查只发生在in?探索这个树时。
+
+虽然这个合约提高了in?的性能，把它恢复到合约较少版本的对数行为上，但它仍然强加了相当大的恒定开销。因此，合约库还提供了define-opt/c，它通过优化它的主体来降低常数因子。它的形态和上面的define一样。它希望它的主体是一个合约，然后优化该合约。
+
+(define-opt/c (bst-between/c low high)
+  (or/c null?
+        (struct/dc node [val (between/c low high)]
+                        [left (val) #:lazy (bst-between/c low val)]
+                        [right (val) #:lazy (bst-between/c val high)])))
