@@ -1,4 +1,4 @@
-本指南适用于新的Racket程序员或部分新的Racket程序员。本指南假定你是有编程经验的。如果您是新学习编程，那么请阅读《如何设计程序》（How to Design Programs）这部分。如果你想特别快地了解Racket语言，从这里开始：《 Quick: An Introduction to Racket with Pictures》这部分。
+本指南适用于新的Racket程序员或部分新的Racket程序员。本指南假定你是有编程经验的。如果您是新学习编程，那么请阅读《如何设计程序》（How to Design Programs）这部分。如果你想特别快地了解Racket语言，从这里开始：《快速：用图片介绍Racket》《 Quick: An Introduction to Racket with Pictures》这部分。
 
 第2章简要介绍Racket语言。从第3章开始，本指南深入讨论了大部分的Racket语言工具箱，但把更清晰的细节内容留给Racket语言参考手册和其他参考手册介绍。
 
