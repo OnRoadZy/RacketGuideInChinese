@@ -6,7 +6,7 @@
 - sequence 序列
 - Shorthand 速记
 - export 导出
-- access 存取
+- access 存取（这个词有保存、读取双功能，不译作访问是为了传达的意思更明确）
 - dissect 解析
 - describe 叙述
 - predicate 断言
