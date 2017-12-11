@@ -20,9 +20,9 @@
       (newline))
 
 
-然后，其他模块可以导入“cake.rkt”使用print-cake的函数，由于“cake.rkt”的provide行明确输出print-cake的定义。show函数对"cake.rkt"是私有的（即，它不能从其他模块被使用），因为show没有被输出。
+然后，其他模块可以导入“cake.rkt”以使用print-cake的函数，因为“cake.rkt”的provide行明确导出了print-cake的定义。show函数对"cake.rkt"是私有的（即它不能从其他模块被使用），因为show没有被导出。
 
-下面的“random-cake.rkt”模块输入“cake.rkt”：
+下面的“random-cake.rkt”模块导入“cake.rkt”：
 
 "random-cake.rkt"
 
@@ -32,4 +32,4 @@
     
     (print-cake (random 30))
 
-相对参考“cake.rkt”的输入(require "cake.rkt")的运行，如果“cake.rkt”和“random-cake.rkt”模块在同一个目录。UNIX样式相对路径用于所有平台上的相关模块引用，就像HTML页面中的相对URL一样。
+相对在导入(require "cake.rkt")内的引用“cake.rkt”的运行来说，如果“cake.rkt”和“random-cake.rkt”模块在同一个目录里。UNIX样式的相对路径用于所有平台上的相对模块引用，就像HTML页面中的相对的URL一样。
