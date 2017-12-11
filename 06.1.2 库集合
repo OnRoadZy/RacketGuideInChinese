@@ -9,17 +9,17 @@
 (printf "Today is ~s\n"
         (date->string (seconds->date (current-seconds))))
 
-当搜索在线Racket文档时，搜索结果表明提供每个绑定的模块。或者，如果通过单击超链接到达绑定文档，则可以在绑定名称上悬停以查找哪些模块提供了它。
+当搜索在线Racket文档时，搜索结果显示提供每个绑定的模块。或者，如果通过单击超链接到达绑定文档，则可以在绑定名称上悬停以查找哪些模块提供了它。
 
-一个模块的参考像racket/date看起来像一个标识符，但它并不是和printf或 date->string相同的方式处理。相反，当require明白一个被引用的模块的参考，反之，将参考一系列基于模块的路径：
+一个模块的引用，像racket/date，看起来像一个标识符，但它并不是和printf或date->string相同的方式对待。相反，当require发现一个被引号包括的模块的引用，它转化这个引用为基于集合的路径：
 
 1、首先，如果这个引用路径不包含/，那么require自动添加一个“/main”给参考。例如，(require slideshow)相当于(require slideshow/main)。
 
 2、其次，require隐式添加”.rkt”后缀给路径。
 
-3、最后，require通过在已安装的集合中搜索路径来解析路径，而不是将路径处理为与封闭模块的路径相对应的路径。
+3、最后，require通过在已安装的集合中搜索路径来决定路径，而不是将路径处理为相对于封闭模块的路径。
 
-作为一个最近似情况，集合作为文件系统目录实现。例如，“racket”集合大多位于Racket安装的“collects”目录中的“racket”目录中，如报告所述。
+作为一个最近似情况，集合作为文件系统目录实现。例如，“racket”集合大多位于Racket安装的“collects”目录中的“racket”目录中，如以下报告：
 
 #lang racket
  
@@ -28,4 +28,4 @@
 (build-path (find-collects-dir) ;主集合的目录
             "racket")
 
-然而，Racket安装的“collects”目录仅仅是一个require寻找收集目录的地方。其它地方包括用户指定的通过(find-user-collects-dir)报告的目录以及通过pltcollects搜索路径配置的目录。最后，最典型的是，通过安装包找到的集合。
+然而，Racket安装的“collects”目录仅仅是一个require寻找目录集合的地方。其它地方包括用户指定的通过(find-user-collects-dir)报告的目录以及通过PLTCOLLECTS搜索路径配置的目录。最后，最典型的是，通过安装包（packages）找到集合。
