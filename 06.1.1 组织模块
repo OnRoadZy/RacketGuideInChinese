@@ -1,8 +1,8 @@
 6.1.1 组织模块
 
-“cake.rkt”和“random-cake.rkt”示例演示如何组织一个程序模块的最常用的方法：把所有的模块文件在一个目录（也许是子目录），然后有模块通过相对路径相互引用。模块目录可以作为一个项目，因为它可以在文件系统上移动或复制到其他机器上，而相对路径则保留模块之间的连接。
+“cake.rkt”和“random-cake.rkt”示例演示如何组织一个程序模块的最常用的方法：把所有的模块文件在一个目录（也许是子目录），然后有模块通过相对路径相互引用。模块目录可以作为一个项目，因为它可以在文件系统上移动或复制到其它机器上，而相对路径则保存模块之间的连接。
 
-另一个例子，如果你正在建设一个糖果分类程序，你可能有一个主要的“sort.rkt”模块，使用其他模块访问糖果数据库和控制分拣机。如果糖果数据库模块本身被组织成子模块处理条码和厂家信息，那么数据库模块可以是“db/lookup.rkt”就是利用辅助模块“db/barcodes.rkt”和“db/makers.rkt”。同样，分拣机驱动程序“machine/control.rkt“可能会使用辅助模块”machine/sensors.rkt“和“machine/actuators.rkt”。
+另一个例子，如果你正在开发一个糖果分类程序，你可能有一个主要的“sort.rkt”模块，使用其他模块访问糖果数据库和控制分拣机。如果糖果数据库模块本身被组织成子模块以处理条码和厂家信息，那么数据库模块可以是“db/lookup.rkt”，它使用辅助模块“db/barcodes.rkt”和“db/makers.rkt”。同样，分拣机驱动程序“machine/control.rkt“可能会使用辅助模块”machine/sensors.rkt“和“machine/actuators.rkt”。
 
 https://docs.racket-lang.org/guide/pict.png
 
@@ -14,7 +14,7 @@ https://docs.racket-lang.org/guide/pict.png
     (require "db/lookup.rkt" "machine/control.rkt")
     ....
 
-“db/lookup.rkt”模块同样使用相对路径的源访问“db/barcodes.rkt”和“db/makers.rkt”模块：
+“db/lookup.rkt”模块类似地使用相对路径给它自己的源码以访问“db/barcodes.rkt”和“db/makers.rkt”模块：
 
 "db/lookup.rkt"
 
@@ -22,7 +22,7 @@ https://docs.racket-lang.org/guide/pict.png
     (require "barcode.rkt" "makers.rkt")
     ....
 
-同样，“machine/control.rkt”：
+同上，“machine/control.rkt”：
 
 "machine/control.rkt"
 
@@ -34,8 +34,8 @@ Racket工具所有运行都自动使用相对路径。例如，
 
 racket sort.rkt
 
-在命令行中运行“sort.rkt”程序、自动加载并编译所需的模块。对于一个足够大的程序，从源编译可能需要很长时间，所以使用
+在命令行运行“sort.rkt”程序和自动加载并编译所需的模块。对于一个足够大的程序，从源码编译可能需要很长时间，所以使用
 
 raco make sort.rkt
 
-编译“sort.rkt”及其所有依赖成为字节码文件。运行racket sort.rkt，如果字节码文件存在，将自动使用字节码文件。
+编译“sort.rkt”及其所有依赖成为字节码文件。如果字节码文件存在，运行racket sort.rkt，将自动使用字节码文件。
