@@ -60,5 +60,5 @@
 - clause 从句
 - indy dependent contract 印依赖合约
 - element 元素
-- predicate 断言
+- predicate 判定（不翻译为断言，是因为断言不直白，判定更简单易懂）
 - field 字段
