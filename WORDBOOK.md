@@ -55,8 +55,8 @@
 - client 客户机（不翻译为客户端是因为客户机可以和服务器对应，更合理）
 - contract 合约（有合同、约定双重字面意义，更符合编程带约定的工作内涵）
 - contract-monitoring system 合约监控系统
-- domain 域
-- range 范围
+- domain 定义域
+- range 值域
 - S-expression S表达式
 - regular expression 正则表达式
 - contract-implementing function 合约执行函数
