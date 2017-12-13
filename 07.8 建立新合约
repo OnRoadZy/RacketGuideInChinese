@@ -80,3 +80,118 @@
            '(expected "a procedure of one argument" given: "~e")
            f)))))
 
+虽然这些推断得到了合约库的支持，并且可以用来构建新的合约，但是合约库也支持不同的API来进行更有效的推断。具体来说，一个后负推断（late neg projection）接受一个归咎对象不带反面归咎的信息，然后按照这个顺序返回一个函数，它既接受合约约定的值也接受反方的名称。然后返回的函数依次根据合约返回值。重写int->int-proj使用这个API，看起来像这样：
+
+(define (int->int-proj blame)
+  (define dom-blame (blame-add-context blame
+                                       "the argument of"
+                                       #:swap? #t))
+  (define rng-blame (blame-add-context blame "the range of"))
+  (define (check-int v to-blame neg-party)
+    (unless (integer? v)
+      (raise-blame-error
+       to-blame #:missing-party neg-party
+       v
+       '(expected "an integer" given: "~e")
+       v)))
+  (λ (f neg-party)
+    (if (and (procedure? f)
+             (procedure-arity-includes? f 1))
+        (λ (x)
+          (check-int x dom-blame neg-party)
+          (define ans (f x))
+          (check-int ans rng-blame neg-party)
+          ans)
+        (raise-blame-error
+         blame #:missing-party neg-party
+         f
+         '(expected "a procedure of one argument" given: "~e")
+         f))))
+
+这种类型的合约的优点是，可以在合同范围的服务器端提供blame参数，而且这个结果可以用于每个不同的客户机。在较简单的情况下，必须为每个客户机创建一个新的归咎对象。
+
+最后一个问题仍然是这个合约可以与合约系统的其它部分一起使用。在上面的函数中，通过为f创建一个包装函数来实现这个合约，但是这个包装器函数与equal?不协作，它也不让运行时系统知道结果函数与输入函数f之间的关系。
+
+为了解决这两个问题，我们应该使用陪护（chaperones）而不是仅仅使用λ创建包装函数。这里是int->int-proj函数被重写以使用陪护：
+
+(define (int->int-proj blame)
+  (define dom-blame (blame-add-context blame
+                                       "the argument of"
+                                       #:swap? #t))
+  (define rng-blame (blame-add-context blame "the range of"))
+  (define (check-int v to-blame neg-party)
+    (unless (integer? v)
+      (raise-blame-error
+       to-blame #:missing-party neg-party
+       v
+       '(expected "an integer" given: "~e")
+       v)))
+  (λ (f neg-party)
+    (if (and (procedure? f)
+             (procedure-arity-includes? f 1))
+        (chaperone-procedure
+         f
+         (λ (x)
+           (check-int x dom-blame neg-party)
+           (values (λ (ans)
+                     (check-int ans rng-blame neg-party)
+                     ans)
+                   x)))
+        (raise-blame-error
+         blame #:missing-party neg-party
+         f
+         '(expected "a procedure of one argument" given: "~e")
+         f))))
+
+推断就像如上所述的一个情况，但适合于其它你可能制造的新类型的值，可以与合约库的基本类型一起使用。具体来说，我们可以用make-chaperone-contract来构建它：
+
+(define int->int-contract
+  (make-contract
+   #:name 'int->int
+   #:late-neg-projection int->int-proj))
+
+然后将其与一个值相结合，得到一些合约检查。
+
+(define/contract (f x)
+  int->int-contract
+  "not an int")
+
+ 
+> (f #f)
+
+f: contract violation;
+
+ expected an integer
+
+  given: #f
+
+  in: the argument of
+
+      int->int
+
+  contract from: (function f)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:5.0
+> (f 1)
+
+f: broke its own contract;
+
+ promised an integer
+
+  produced: "not an int"
+
+  in: the range of
+
+      int->int
+
+  contract from: (function f)
+
+  blaming: (function f)
+
+   (assuming the contract is correct)
+
+  at: eval:5.0
