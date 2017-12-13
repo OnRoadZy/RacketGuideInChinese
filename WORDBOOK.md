@@ -27,6 +27,8 @@
 - reference 引用　
 - source 源码
 - projection 推断
+- primitives 基本类型
+- build 构建
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
@@ -66,3 +68,4 @@
 - element 元素
 - predicate 判定（不翻译为断言，是因为断言不直白，判定更简单易懂）
 - field 字段
+- wrapper function 包装函数
