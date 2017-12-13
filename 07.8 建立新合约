@@ -1,0 +1,82 @@
+7.8 建立新合约
+
+合约在内部表现为函数，它接受合约的信息（归咎于谁，源程序位置等），并以合约的名义产生（Dana Scott精神）的推断。
+
+一般意义上，推断是接受任意值的函数，并返回满足相应合约的值。例如，只接受整数的推断对应于合约(flat-contract integer?)可以这样写：
+
+(define int-proj
+  (λ (x)
+    (if (integer? x)
+        x
+        (signal-contract-violation))))
+
+作为第二个例子，在整数上接受一元函数的推断如下所示：
+
+(define int->int-proj
+  (λ (f)
+    (if (and (procedure? f)
+             (procedure-arity-includes? f 1))
+        (λ (x) (int-proj (f (int-proj x))))
+        (signal-contract-violation))))
+
+虽然这些推断具有恰当的错误行为，但它们还不太适合作为合约使用，因为它们不适合容纳归咎问题，也不提供良好的错误消息。为了适应这些，合约不只使用简单的推断，而是使用接受归咎对象的函数，将被归咎的双方的名字封装起来，并记录已建立的合约源代码的位置和该合约的名称。然后，它们可以依次传递这些信息给raise-blame-error来发出一个良好的错误信息。
+
+下面是这两个推断中的第一个，被改写为在合约系统中使用：
+
+(define (int-proj blame)
+  (λ (x)
+    (if (integer? x)
+        x
+        (raise-blame-error
+         blame
+         x
+         '(expected: "<integer>" given: "~e")
+         x))))
+
+新的论点指明了谁应该为正面和反面的合约违约负责。
+
+在这个系统中，合约总是建立在双方之间。一方称为服务器，根据合约提供一些值；另一方称为客户机，也根据合约接受值。服务器称为正面位置，客户机称为反面位置。因此，对于整数合约，唯一可能出错的是所提供的值不是整数。因此，永远只有正面的一方（服务器）才能获得归咎。raise-blame-error函数总是归咎于正面的一方。
+
+将之与我们的函数合约的推断进行比较：
+
+(define (int->int-proj blame)
+  (define dom (int-proj (blame-swap blame)))
+  (define rng (int-proj blame))
+  (λ (f)
+    (if (and (procedure? f)
+             (procedure-arity-includes? f 1))
+        (λ (x) (rng (f (dom x))))
+        (raise-blame-error
+         blame
+         f
+         '(expected "a procedure of one argument" given: "~e")
+         f))))
+
+
+在这种情况下，唯一明确的归咎于涉及到一个非程序提供给合约或程序不接受一个参数的情况。与整数推断一样，这里的归咎也在于这个值的产生，这就是为什么raise-blame-error传递blame没有改变。
+
+对于定义域和值域的检查是委托给int-proj函数，它提供其参数在前面两行int->int-proj函数。这里的诀窍是，即使int->int-proj函数总是归咎于它所认为的正面，我们可以通过对给定的归咎对象调用blame-swap互换归咎的一方，取代正面一方与反面一方，反之亦然。
+
+然而，这种技术并不仅仅是一个廉价的技巧来让这个例子发挥作用。正方和反方的反转是函数运作行为的自然结果。也就是说，想象在两个模块之间的程序中的值流。首先，一个模块（服务器）定义了一个函数，然后该模块由另一个模块（客户机）所依赖。到目前为止，函数本身必须从原来的，提供模块给依赖的模块。现在，假设依赖模块调用函数，为它提供一个参数。此时，值流反转。参数正在从依赖模块返回到提供模块！客户机正在将参数提供给服务器，服务器将作为客户机接收该值。最后，当函数产生一个结果时，结果会从服务器流向客户机。因此，定义域上的合约颠倒了正方和反方的责任方，就像值流逆转一样。
+
+我们可以利用这个领悟来概括函数合约并构建一个函数，它接受任意两个合约，并为它们之间的函数返回一个合约。
+
+这一推断也更进一步在检测到违反合约的情况下，使用blame-add-context来改进错误消息。
+
+(define (make-simple-function-contract dom-proj range-proj)
+  (λ (blame)
+    (define dom (dom-proj (blame-add-context blame
+                                             "the argument of"
+                                             #:swap? #t)))
+    (define rng (range-proj (blame-add-context blame
+                                               "the range of")))
+    (λ (f)
+      (if (and (procedure? f)
+               (procedure-arity-includes? f 1))
+          (λ (x) (rng (f (dom x))))
+          (raise-blame-error
+           blame
+           f
+           '(expected "a procedure of one argument" given: "~e")
+           f)))))
+
