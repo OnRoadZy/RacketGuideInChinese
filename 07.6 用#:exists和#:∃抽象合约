@@ -40,4 +40,4 @@ contract-out表允许你写作：
 
 现在，如果数据结构的客户机尝试使用car和cdr，他们会收到一个错误，而不是去摆弄的队列的内部成员。
 
-也可以参见《合约和断言生存期》（Exists Contracts and Predicates）。
+也可以参见《合约和判断的生存期》（Exists Contracts and Predicates）。
