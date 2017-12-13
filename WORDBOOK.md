@@ -25,6 +25,7 @@
 - binding 绑定
 - reference 引用　
 - source 源码
+- projection 推断
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
