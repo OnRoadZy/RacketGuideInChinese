@@ -1,0 +1,184 @@
+7.8.2 所有的警告和报警
+
+合约中有一些可选部分，simple-arrow-contract没有添加。在这一节中，我们将通过所有这些步骤来演示如何实现这些示例。
+
+第一个是一阶检查。这是用or/c来确定当它看到一个值时使用哪个高阶参数合约。下面是我们简单箭头合约的功能。
+
+(define (simple-arrow-first-order ctc)
+  (λ (v) (and (procedure? v)
+              (procedure-arity-includes? v 1))))
+
+它接受一个值并返回#f，如果这个值确实不满足合同，并且如返回#t，只要我们能够辨别这个值满足合约，就正是这个值的一阶属性检查。
+
+下一个是随机的生成。合约库中的随机生成分为两部分：随机运用满足合约值的能力和与应用与给定合约相匹配的值的能力，希望发现其中的错误（并试图使它们生成在生成期间在其他地方使用的有趣值）。
+
+
+为了运用合约，我们需要实现一个赋予arrow-contract结构和一些辅助函数。它应该返回两个值：一个函数，它接受合约值并运用它们；外加一个值列表，这个运用过程总会产生。对于我们简单的合约，我们知道我们总能产生值域的值，只要我们可以生成定义域的值（因为我们可以调用函数）。因此，这里有一个函数，它与build-chaperone-contract-property合约的exercise参数相匹配：
+
+(define (simple-arrow-contract-exercise arr)
+  (define env (contract-random-generate-get-current-environment))
+  (λ (fuel)
+    (define dom-generate
+      (contract-random-generate/choose (simple-arrow-dom arr) fuel))
+    (cond
+      [dom-generate
+       (values
+        (λ (f) (contract-random-generate-stash
+                env
+                (simple-arrow-rng arr)
+                (f (dom-generate))))
+        (list (simple-arrow-rng arr)))]
+      [else
+       (values void '())])))
+
+如果定义域合约可以产生，那么我们知道我们可以通过运用来做一些好的事。在这种情况下，我们返回一个过程，它用我们从定义域生成的东西调用f（这个函数与合约匹配），而且我们也将结果值保存在环境中。我们也返回(simple-arrow-rng arr)表明运用总是会产生合约的东西。
+
+如果不能，那么我们只简单地返回一个函数，它不运用(void)和空列表（表示我们不会生成任何值）。
+
+然后，为了生成与合约相匹配的值，我们定义了一个函数，当给定合约和辅助函数时，它构成一个随机函数。为了帮助它成为一个更有效的测试函数，我们可以运用它接受的任何参数，并也将它们保存到生成环境中，但前提是我们可以生成值域合约的值。
+
+(define (simple-arrow-contract-generate arr)
+  (λ (fuel)
+    (define env (contract-random-generate-get-current-environment))
+    (define rng-generate
+      (contract-random-generate/choose (simple-arrow-rng arr) fuel))
+    (cond
+      [rng-generate
+       (λ ()
+         (λ (arg)
+           (contract-random-generate-stash env (simple-arrow-dom arr) arg)
+           (rng-generate)))]
+      [else
+       #f])))
+
+当随机生成将环境中的某个东西拉出时，它需要能够判断是否一个被传递给contract-random-generate-stash的值是试图生成的合约的候选对象。当然，合约传递给contract-random-generate-stash的是一个精确的匹配，然后它就可以使用它。但是，如果合约更强大的话它也可以使用这个价值（在它接受更少的值的意义上）。
+
+为了提供这个功能，我们实现了这个函数：
+
+(define (simple-arrow-first-stronger? this that)
+  (and (simple-arrow? that)
+       (contract-stronger? (simple-arrow-dom that)
+                           (simple-arrow-dom this))
+       (contract-stronger? (simple-arrow-rng this)
+                           (simple-arrow-rng that))))
+
+这个函数接受this和this，两个合约。它保证this将是我们简单的箭头合约之一，因为我们将此函数与简单的箭头实现一起提供。但that参数可能是任何合约。如果同样比较定义域和值域，这个函数通过检查弄明白that是否也是一个简单的箭头合约。当然，还有其它的合约，我们也可以检查（例如，使用->或->*建立的合同），但我们并不需要。更强的函数是如果不知道答案，允许返回#f；但如果它返回#t，那么这个合约必须真正地强健。
+
+既然我们已经完成了所有的部分，我们需要传递它们给build-chaperone-contract-property，这样合约系统就开始使用它们了：
+
+(struct simple-arrow (dom rng)
+  #:property prop:custom-write contract-custom-write-property-proc
+  #:property prop:chaperone-contract
+  (build-chaperone-contract-property
+   #:name
+   (λ (arr) (simple-arrow-name arr))
+   #:late-neg-projection
+   (λ (arr) (simple-arrow-late-neg-proj arr))
+   #:first-order simple-arrow-first-order
+   #:stronger simple-arrow-first-stronger?
+   #:generate simple-arrow-contract-generate
+   #:exercise simple-arrow-contract-exercise))
+(define (simple-arrow-contract dom rng)
+  (simple-arrow (coerce-contract 'simple-arrow-contract dom)
+                (coerce-contract 'simple-arrow-contract rng)))
+
+我们还添加了一个prop:custom-write属性，使合约正确打印，例如：
+
+> (simple-arrow-contract integer? integer?)
+
+(-> integer? integer?)
+
+（我们使用prop:custom-write，因为合约库不能依赖于
+
+#lang racket/generic
+
+但仍然希望提供一些帮助，以便于使用正确的打印机。）
+
+既然那些已经完成，我们就可以使用新功能。这里是一个随机函数，它由合约库生成，使用我们的simple-arrow-contract-generate函数：
+
+(define a-random-function
+  (contract-random-generate
+   (simple-arrow-contract integer? integer?)))
+
+ 
+> (a-random-function 0)
+
+0
+> (a-random-function 1)
+
+2147483647.0
+
+下面是体现合约系统现在如何在使用简单箭头合约的函数中自动发现bug：
+
+(define/contract (misbehaved-f f)
+  (-> (simple-arrow-contract integer? boolean?) any)
+  (f "not an integer"))
+
+ 
+> (contract-exercise misbehaved-f)
+
+misbehaved-f: broke its own contract
+
+  promised: integer?
+
+  produced: "not an integer"
+
+  in: the argument of
+
+      the 1st argument of
+
+      (-> (-> integer? boolean?) any)
+
+  contract from: (function misbehaved-f)
+
+  blaming: (function misbehaved-f)
+
+   (assuming the contract is correct)
+
+  at: eval:25.0
+  
+  如果我们没有实现simple-arrow-first-order，那么or/c就不能判断这个程序中使用哪一个or/c分支：
+  
+(define/contract (maybe-accepts-a-function f)
+  (or/c (simple-arrow-contract real? real?)
+        (-> real? real? real?)
+        real?)
+  (if (procedure? f)
+      (if (procedure-arity-includes f 1)
+          (f 1132)
+          (f 11 2))
+      f))
+
+ 
+> (maybe-accepts-a-function sqrt)
+
+maybe-accepts-a-function: contract violation
+
+  expected: real?
+
+  given: #<procedure:sqrt>
+
+  in: the argument of
+
+      a part of the or/c of
+
+      (or/c
+
+       (-> real? real?)
+
+       (-> real? real? real?)
+
+       real?)
+
+  contract from: 
+
+      (function maybe-accepts-a-function)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:27.0
+> (maybe-accepts-a-function 123)
+
+123  
