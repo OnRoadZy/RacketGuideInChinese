@@ -1,0 +1,94 @@
+7.8.1 合约结构属性
+
+对于一次性合约来说，make-chaperone-contract函数是可以的，但通常你想做许多不同的合约，只在某些部分有所不同。做到这一点的最好方法是使用一个struct（结构），带prop:contract、prop:chaperone-contract或者prop:flat-contract。
+
+例如，假设我们想做一个->合约的简单表，它接受值域的一个合约和定义域的一个合约。我们应该定义一个具有两个字段的结构，并使用build-chaperone-contract-property构建我们需要的监护合约属性。
+
+(struct simple-arrow (dom rng)
+  #:property prop:chaperone-contract
+  (build-chaperone-contract-property
+   #:name
+   (λ (arr) (simple-arrow-name arr))
+   #:late-neg-projection
+   (λ (arr) (simple-arrow-late-neg-proj arr))))
+
+要像integer?和#f那样对值自动强制进入合约，我们需要调用coerce-chaperone-contract（注意这个拒绝模拟合约并对扁平合约不予坚持；做的既可以是这些事情、调用coerce-contract，也可以是代替coerce-flat-contract）。
+
+(define (simple-arrow-contract dom rng)
+  (simple-arrow (coerce-contract 'simple-arrow-contract dom)
+                (coerce-contract 'simple-arrow-contract rng)))
+
+定义simple-arrow-name是直截了当的；它需要返回一个S表达式来表达合约：
+
+(define (simple-arrow-name arr)
+  `(-> ,(contract-name (simple-arrow-dom arr))
+       ,(contract-name (simple-arrow-rng arr))))
+
+我们可以用我们前面定义的推断的一般化形式定义一个推断，这个时候使用监护：
+
+    (define (simple-arrow-late-neg-proj arr)
+      (define dom-ctc (get/build-late-neg-projection (simple-arrow-dom arr)))
+      (define rng-ctc (get/build-late-neg-projection (simple-arrow-rng arr)))
+      (λ (blame)
+        (define dom+blame (dom-ctc (blame-add-context blame
+                                                      "the argument of"
+                                                      #:swap? #t)))
+        (define rng+blame (rng-ctc (blame-add-context blame "the range of")))
+        (λ (f neg-party)
+          (if (and (procedure? f)
+                   (procedure-arity-includes? f 1))
+              (chaperone-procedure
+               f
+               (λ (arg)
+                 (values
+                  (λ (result) (rng+blame result neg-party))
+                  (dom+blame arg neg-party))))
+              (raise-blame-error
+               blame #:missing-party neg-party
+               f
+               '(expected "a procedure of one argument" given: "~e")
+               f)))))
+
+    (define/contract (f x)
+      (simple-arrow-contract integer? boolean?)
+      "not a boolean")
+
+     
+    > (f #f)
+
+    f: contract violation
+
+      expected: integer?
+
+      given: #f
+
+      in: the argument of
+
+          (-> integer? boolean?)
+
+      contract from: (function f)
+
+      blaming: top-level
+
+       (assuming the contract is correct)
+
+      at: eval:12.0
+    > (f 1)
+
+    f: broke its own contract
+
+      promised: boolean?
+
+      produced: "not a boolean"
+
+      in: the range of
+
+          (-> integer? boolean?)
+
+      contract from: (function f)
+
+      blaming: (function f)
+
+       (assuming the contract is correct)
+
+      at: eval:12.0
