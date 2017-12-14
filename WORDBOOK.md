@@ -29,6 +29,7 @@
 - projection 推断
 - primitives 基本类型
 - build 构建
+- exercise 运用
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
