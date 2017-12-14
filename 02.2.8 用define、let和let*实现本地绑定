@@ -7,7 +7,7 @@
 
 函数体开始时的定义在函数体中是局部的。
 
-例子：
+例如：
 (define (converse s)
   (define (starts? s2) ; local to converse
     (define len2 (string-length s2))  ; local to starts?
