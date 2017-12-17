@@ -1,0 +1,26 @@
+7.9.4 定义递归合约
+
+定义自参考合约时，很自然地去使用define。例如，人们可能试图在这样的流上写一份合约：
+
+> (define stream/c
+    (promise/c
+     (or/c null?
+           (cons/c number? stream/c))))
+
+stream/c: undefined;
+
+ cannot reference undefined identifier
+
+不幸的是，这不起作用，因为在定义之前需要stream/c的值。换句话说，所有的组合都渴望对它们的参数求值，即使它们不接受这些值。
+
+相反，使用
+
+(define stream/c
+  (promise/c
+   (or/c
+    null?
+    (cons/c number? (recursive-contract stream/c)))))
+
+recursive-contract的使用延迟对标识符stream/c的求值，直到第一次检查完合约之后，足够长的时间才能确保stream/c被定义。
+
+请参阅《检查数据结构的属性》（Checking Properties of Data Structures）。
