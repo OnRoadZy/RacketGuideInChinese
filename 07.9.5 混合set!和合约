@@ -1,0 +1,36 @@
+7.9.5 混合set!和合约
+
+合约库假定变量通过contract-out导出没有被分配到，但没有强制执行。因此，如果您尝试set!这些变量，你可能会感到惊讶。考虑下面的例子：
+
+> (module server racket
+    (define (inc-x!) (set! x (+ x 1)))
+    (define x 0)
+    (provide (contract-out [inc-x! (-> void?)]
+                           [x integer?])))
+> (module client racket
+    (require 'server)
+  
+    (define (print-latest) (printf "x is ~s\n" x))
+  
+    (print-latest)
+    (inc-x!)
+    (print-latest))
+
+> (require 'client)
+
+x is 0
+x is 0
+
+两个调用print-latest打印0，即使x的值已经增加（并且在模块x内可见）。
+
+为了解决这个问题，导出访问函数，而不是直接导出变量，像这样：
+
+#lang racket
+ 
+(define (get-x) x)
+(define (inc-x!) (set! x (+ x 1)))
+(define x 0)
+(provide (contract-out [inc-x! (-> void?)]
+                       [get-x (-> integer?)]))
+
+教训：这是一个我们将在以后的版本中讨论的bug。
