@@ -5,6 +5,7 @@
 - Examples: 例如：（感觉这样翻译比“例子：”、“举例：”更贴近口语）
 - sequence 序列
 - Shorthand 速记
+- evaluate 求值
 - load 加载
 - import 导入
 - export 导出
@@ -30,6 +31,7 @@
 - primitives 基本类型
 - build 构建
 - exercise 运用
+
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
@@ -45,8 +47,10 @@
 - box 格子（不翻译为“盒子”是因为我认为数据是平面、线性的，用“格子”更贴切）
 - void 空值
 - undefined 未定义值
+
 ## 扩展数据类型
 - struct 结构
+
 ## 程序术语
 - curried function 咖喱函数（带有临时使用性质的函数，就像当佐料的咖喱一样，这里直接命名为咖喱函数）
 - module 模块
@@ -71,3 +75,4 @@
 - predicate 判定（不翻译为断言，是因为断言不直白，判定更简单易懂）
 - field 字段
 - wrapper function 包装函数
+- variable 变量
