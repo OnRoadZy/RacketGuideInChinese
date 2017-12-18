@@ -31,6 +31,7 @@
 - primitives 基本类型
 - build 构建
 - exercise 运用
+- escape 转义
 
 ## 内置数据名称
 - boolean 布尔值
@@ -76,3 +77,6 @@
 - field 字段
 - wrapper function 包装函数
 - variable 变量
+- metacharacter 元字符
+- metasequence 元序列
+- succession 演替（借用生物学上的名词译作演替）
