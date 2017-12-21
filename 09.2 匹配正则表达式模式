@@ -1,0 +1,108 @@
+9.2 匹配正则表达式模式
+
+regexp-match-positions函数接受一个正则表达模式和一个文本字符串，如果正则表达式匹配（某部分）文本字符串则返回一个匹配，或如果正则表达式不匹配字符串则返回#f。成功匹配生成一个索引对列表。
+
+例如：
+
+> (regexp-match-positions #rx"brain" "bird")
+
+#f
+> (regexp-match-positions #rx"needle" "hay needle stack")
+
+'((4 . 10))
+
+在第二个例子中，整数4和10确定的子字符串匹配。4是起始（含）索引，和10是结束（唯一的）匹配的子字符串的索引：
+
+> (substring "hay needle stack" 4 10)
+
+"needle"
+
+第一个例子中，regexp-match-positions的返回列表只包含一个索引对，和这索引对代表由正则表达式匹配整个字符串。当我们论述子模式后，我们将看到一个匹配操作可以产生一个列表的子匹配（submatche）。
+
+regexp-match-positions函数需要可选第三和第四个参数指定的文本字符串的匹配应该发生的指标。
+
+    > (regexp-match-positions
+       #rx"needle"
+       "his needle stack -- my needle stack -- her needle stack"
+       20 39)
+
+    '((23 . 29))
+
+注意，返回的索引仍然与全文字符串相对应。
+
+regexp-match函数类似于regexp-match-positions，但它不是返回索引对，它返回匹配的子字符串：
+
+> (regexp-match #rx"brain" "bird")
+
+#f
+> (regexp-match #rx"needle" "hay needle stack")
+
+'("needle")
+
+当regexp-match使用字节字符串表达式，结果是一个匹配的字节串：
+
+> (regexp-match #rx#"needle" #"hay needle stack")
+
+'(#"needle")
+
+如果在端口中有数据，则无需首先将其读取到字符串中。像regexp-match函数可以直接匹配端口：
+
+> (define-values (i o) (make-pipe))
+> (write "hay needle stack" o)
+> (close-output-port o)
+> (regexp-match #rx#"needle" i)
+
+'(#"needle")
+
+regexp-match?函数类似于regexp-match-positions，但只简单地返回一个布尔值，以指示是否匹配成功：
+
+> (regexp-match? #rx"brain" "bird")
+
+#f
+> (regexp-match? #rx"needle" "hay needle stack")
+
+#t
+
+regexp-split函数有两个参数，一个正则表达式模式和一个文本字符串，并返回一个文本字符串的子串列表；这个模式识别分隔子字符串的分隔符。
+
+> (regexp-split #rx":" "/bin:/usr/bin:/usr/bin/X11:/usr/local/bin")
+
+'("/bin" "/usr/bin" "/usr/bin/X11" "/usr/local/bin")
+> (regexp-split #rx" " "pea soup")
+
+'("pea" "soup")
+
+如果第一个参数匹配空字符串，那么返回所有的单个字符的子字符串列表。
+
+> (regexp-split #rx"" "smithereens")
+
+'("" "s" "m" "i" "t" "h" "e" "r" "e" "e" "n" "s" "")
+
+因此，确定一个或多个空格作为分隔符，请注意使用正则表达式#rx” +“，而不是#rx” *”。
+
+> (regexp-split #rx" +" "split pea     soup")
+
+'("split" "pea" "soup")
+> (regexp-split #rx" *" "split pea     soup")
+
+'("" "s" "p" "l" "i" "t" "" "p" "e" "a" "" "s" "o" "u" "p" "")
+
+regexp-replace函数用另一个字符串替换文本字符串匹配的部分。第一个参数是模式，第二个参数是文本字符串，第三个参数是要插入的字符串，或者一个将匹配转换为插入字符串的过程。
+
+> (regexp-replace #rx"te" "liberte" "ty")
+
+"liberty"
+> (regexp-replace #rx"." "racket" string-upcase)
+
+"Racket"
+
+如果该模式没有出现在这个文本字符串中，返回的字符串与文本字符串相同。
+
+regexp-replace*函数用插入字符串替换文本字符串中的所有匹配：
+
+> (regexp-replace* #rx"te" "liberte egalite fraternite" "ty")
+
+"liberty egality fratyrnity"
+> (regexp-replace* #rx"[ds]" "drracket" string-upcase)
+
+"Drracket"
