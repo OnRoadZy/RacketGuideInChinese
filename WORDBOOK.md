@@ -80,3 +80,4 @@
 - metacharacter 元字符
 - metasequence 元序列
 - succession 演替（借用生物学上的名词译作演替）
+- pattern 模式（模式，指事物的标准样式。如：发展模式。）
