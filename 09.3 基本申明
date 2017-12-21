@@ -1,0 +1,31 @@
+9.3 基本申明
+
+论断（assertions）^和$分别标识文本字符串的开头和结尾，它们确保对它们临近的一个或其它文本字符串的结束正则表达式匹配：
+
+> (regexp-match-positions #rx"^contact" "first contact")
+
+#f
+
+以上正则表达式匹配失败是因为contact没有出现在文本字符串的开始。在
+
+> (regexp-match-positions #rx"laugh$" "laugh laugh laugh laugh")
+
+'((18 . 23))
+
+中，正则表达式匹配的最后的laugh。
+
+元序列\b坚称一个字的范围存在，但这元序列只能与#px语法一起工作。在
+
+> (regexp-match-positions #px"yack\\b" "yackety yack")
+
+'((8 . 12))
+
+在yackety的yack不在字边界结束，所以不匹配。第二yack在字边界结束，所以匹配。
+
+元序列\B（也只有#px）对\b有相反的影响；它断言字边界不存在。在
+
+> (regexp-match-positions #px"an\\B" "an analysis")
+
+'((3 . 5))
+
+an不在单词边界结束，是匹配的。
