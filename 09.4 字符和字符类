@@ -1,0 +1,14 @@
+9.4 字符和字符类
+
+通常，在正则表达式中的字符匹配相同文本字符串中的字符。有时使用正则表达式元序列引用单个字符是有必要的或方便的。例如，元序列\.匹配句点字符。
+
+元字符.匹配任意字符（除了在多行模式中换行，参见《》（Cloisters））：
+
+> (regexp-match #rx"p.t" "pet")
+
+'("pet")
+
+上面的模式也匹配pat、pit、pot、put和p8t，但不匹配peat或pfffft。
+
+字符类（character class）匹配来自于一组字符中的任何一个字符。一个典型的格式，这是括号字符类（bracketed character class）[...]，它匹配任何一个来自包含在括号内的非空序列的字符。因此，#rx"p[aeiou]t"匹配pat、pet、pit、pot、put，别的什么都不匹配。
+
