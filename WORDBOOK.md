@@ -32,6 +32,7 @@
 - build 构建
 - exercise 运用
 - escape 转义
+- matche 匹配
 
 ## 内置数据名称
 - boolean 布尔值
