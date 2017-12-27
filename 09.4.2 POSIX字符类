@@ -1,0 +1,50 @@
+9.4.2 POSIX字符类
+
+POSIX（可移植性操作系统接口）字符类是一种特殊形式的形如[:...:]的元序列，它只能用在#px语法中的一个括号表达式内。POSIX类支持
+
+[:alnum:] — ASCII字母和数字
+
+[:alpha:] — ASCII字母
+
+[:ascii:] — ASCII字符
+
+[:blank:] — ASCII等宽的空格：空格和tab
+
+[:cntrl:] — “控制”字符：ASCII 0到32
+
+[:digit:] — ASCII数字，像\d
+
+[:graph:] — ASCII图形字符
+
+[:lower:] — ASCII小写字母
+
+[:print:] — ASCII图形字符加等宽空白
+
+[:space:] — ASCII空白，像\s
+
+[:upper:] — ASCII大写字母
+
+[:word:] — ASCII字母和_，像\w
+
+[:xdigit:] — ASCII十六进制数字
+
+例如，在#px"[[:alpha:]_]"匹配一个字母或下划线。
+
+> (regexp-match #px"[[:alpha:]_]" "--x--")
+
+'("x")
+> (regexp-match #px"[[:alpha:]_]" "--_--")
+
+'("_")
+> (regexp-match #px"[[:alpha:]_]" "--:--")
+
+#f
+
+POSIX类符号只适用于在括号表达式内。例如，[:alpha:]，当不在括号表达式内时，不会被当做字母类读取。确切地说，它是（从以前的原则）包含字符:、a、l、p、h的字符类。
+
+> (regexp-match #px"[:alpha:]" "--a--")
+
+'("a")
+> (regexp-match #px"[:alpha:]" "--x--")
+
+#f
