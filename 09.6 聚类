@@ -1,0 +1,34 @@
+9.6 聚类
+
+聚类（Cluster）——文内的括号(...)——确定封闭模式作为一个单一的实体。它使匹配去捕获匹配项，或字符串的一部分匹配子模式，除了整体匹配之外：
+
+> (regexp-match #rx"([a-z]+) ([0-9]+), ([0-9]+)" "jan 1, 1970")
+
+'("jan 1, 1970" "jan" "1" "1970")
+
+聚类也导致以下量词对待整个封闭的模式作为一个实体：
+
+> (regexp-match #rx"(pu )*" "pu pu platter")
+
+'("pu pu " "pu ")
+
+返回的匹配项数量总是等于指定的正则表达式子模式的数量，即使一个特定的子模式恰好匹配多个子字符串或根本没有子串。
+
+> (regexp-match #rx"([a-z ]+;)*" "lather; rinse; repeat;")
+
+'("lather; rinse; repeat;" " repeat;")
+
+在这里，*量化子模式匹配的三次，但这是返回的最后一个匹配项。
+
+对一个量化的模式来说不匹配也是可能的，甚至是对整个模式匹配。在这种情况下，失败的匹配项通过#f体现。
+
+> (define date-re
+    ; match ‘month year' or ‘month day, year';
+    ; subpattern matches day, if present
+    #rx"([a-z]+) +([0-9]+,)? *([0-9]+)")
+> (regexp-match date-re "jan 1, 1970")
+
+'("jan 1, 1970" "jan" "1," "1970")
+> (regexp-match date-re "jan 1970")
+
+'("jan 1970" "jan" #f "1970")
