@@ -1,0 +1,60 @@
+9.5 量词
+
+量词（quantifier）*、+和?分别匹配：前面的子模式的零个或多个，一个或多个以及零个或一个实例。
+
+> (regexp-match-positions #rx"c[ad]*r" "cadaddadddr")
+
+'((0 . 11))
+> (regexp-match-positions #rx"c[ad]*r" "cr")
+
+'((0 . 2))
+> (regexp-match-positions #rx"c[ad]+r" "cadaddadddr")
+
+'((0 . 11))
+> (regexp-match-positions #rx"c[ad]+r" "cr")
+
+#f
+> (regexp-match-positions #rx"c[ad]?r" "cadaddadddr")
+
+#f
+> (regexp-match-positions #rx"c[ad]?r" "cr")
+
+'((0 . 2))
+> (regexp-match-positions #rx"c[ad]?r" "car")
+
+'((0 . 3))
+
+在#px语法里，你可以使用括号指定比*、+、?更精细的调整量：
+
+1、量词{m}精确匹配前面子模式的m实例；m必须是一个非负整数。
+
+2、量词{m,n}匹配至少m并至多n个实例。m和n是非负整数，m小于或等于n。你可以省略一个或两个都省略，在这种情况下m默认为0，n到无穷大。
+
+很明显，+和?是{1,}和{0,1}的缩写，*是{，}的缩写，和{0,}一样。
+
+> (regexp-match #px"[aeiou]{3}" "vacuous")
+
+'("uou")
+> (regexp-match #px"[aeiou]{3}" "evolve")
+
+#f
+> (regexp-match #px"[aeiou]{2,3}" "evolve")
+
+#f
+> (regexp-match #px"[aeiou]{2,3}" "zeugma")
+
+'("eu")
+
+迄今为止所描述的量词都是贪婪的：它们匹配最大的实例数，还会导致对整个模式的总体匹配。
+
+> (regexp-match #rx"<.*>" "<tag1> <tag2> <tag3>")
+
+'("<tag1> <tag2> <tag3>")
+
+为了使这些量词为非贪婪，给它们追加?。非贪婪量词匹配满足需要的最小实例数，以确保整体匹配。
+
+> (regexp-match #rx"<.*?>" "<tag1> <tag2> <tag3>")
+
+'("<tag1>")
+
+非贪婪量词分别为：*?、+?、??、{m}?、{m，n}?。注意匹配字符?的这两种使用。
