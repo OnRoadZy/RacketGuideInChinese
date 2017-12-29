@@ -1,0 +1,54 @@
+9.6.1 后向引用
+
+子匹配可用于插入字符串参数的regexp-replace和regexp-replace*程序。插入的字符串可以使用\n为后向引用（backreference）返回第n个匹配项，这是子字符串，它匹配第n个子模式。一个\0引用整个匹配，它也可以指定为\&。
+
+> (regexp-replace #rx"_(.+?)_"
+    "the _nina_, the _pinta_, and the _santa maria_"
+    "*\\1*")
+
+"the *nina*, the _pinta_, and the _santa maria_"
+> (regexp-replace* #rx"_(.+?)_"
+    "the _nina_, the _pinta_, and the _santa maria_"
+    "*\\1*")
+
+"the *nina*, the *pinta*, and the *santa maria*"
+> (regexp-replace #px"(\\S+) (\\S+) (\\S+)"
+    "eat to live"
+    "\\3 \\2 \\1")
+
+"live to eat"
+
+使用\\在插入字符串指定转义符。同时，\$代表空字符串，并且对从紧随其后的数字分离后向引用\n是有用的。
+
+反向引用也可以用在#px模式以返回模式中的一个已经匹配的子模式。\n代表第n个子匹配的精确重复。注意这个\0、在插入字符串是有用的，在regexp模式内没有道理，因为整个正则表达式不匹配而无法回到它。
+
+> (regexp-match #px"([a-z]+) and \\1"
+                "billions and billions")
+
+'("billions and billions" "billions")
+
+注意，后向引用不是简单地重复以前的子模式。而这是一个特别的被子模式所匹配的子串的重复 。
+
+在上面的例子中，后向引用只能匹配billions。它不会匹配millions，即使子模式追溯到——([a-z]+)——这样做会没有问题：
+
+> (regexp-match #px"([a-z]+) and \\1"
+                "billions and millions")
+
+#f
+
+下面的示例标记数字字符串中所有立即重复的模式：
+
+> (regexp-replace* #px"(\\d+)\\1"
+    "123340983242432420980980234"
+    "{\\1,\\1}")
+
+"12{3,3}40983{24,24}3242{098,098}0234"
+
+下面的示例修正了两个单词：
+
+> (regexp-replace* #px"\\b(\\S+) \\1\\b"
+    (string-append "now is the the time for all good men to "
+                   "to come to the aid of of the party")
+    "\\1")
+
+"now is the time for all good men to come to the aid of the party"
