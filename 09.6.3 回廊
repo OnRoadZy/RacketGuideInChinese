@@ -1,0 +1,37 @@
+9.6.3 回廊
+
+一个非捕捉簇?和:之间的位置称为回廊（cloister）。你可以把修饰符放在这儿，有可能会使簇子模式被特别处理。这个修饰符i使子模式匹配时不区分大小写：
+
+> (regexp-match #rx"(?i:hearth)" "HeartH")
+
+'("HeartH")
+
+修饰符m使子模式在多行模式匹配，在.的位置不匹配换行符，^仅在一个新行后可以匹配，而$仅在一个新行前可以匹配。
+
+> (regexp-match #rx"." "\na\n")
+
+'("\n")
+> (regexp-match #rx"(?m:.)" "\na\n")
+
+'("a")
+> (regexp-match #rx"^A plan$" "A man\nA plan\nA canal")
+
+#f
+> (regexp-match #rx"(?m:^A plan$)" "A man\nA plan\nA canal")
+
+'("A plan")
+
+你可以在回廊里放置多个修饰符：
+
+> (regexp-match #rx"(?mi:^A Plan$)" "a man\na plan\na canal")
+
+'("a plan")
+
+在修饰符前的一个减号反转它的意思。因此，你可以在子类中使用-i以翻转案例不由封闭簇造导致。
+
+> (regexp-match #rx"(?i:the (?-i:TeX)book)"
+                "The TeXbook")
+
+'("The TeXbook")
+
+上述正表达式将允许任何针对the和book的外壳，但它坚持认为Tex有不同的包装。
