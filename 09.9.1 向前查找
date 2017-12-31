@@ -1,0 +1,19 @@
+9.9.1 向前查找
+
+用?=正正向查找窥探以提前确保其子模式能够匹配。
+
+> (regexp-match-positions #rx"grey(?=hound)"
+    "i left my grey socks at the greyhound")
+
+'((28 . 32))
+
+正则表达式#rx"grey(?=hound)"匹配灰grey，但前提是它后面紧跟着hound。因此，文本字符串中的第一个grey不匹配。
+
+用?!反正向查找窥探以提前确保其子模式不可能匹配。
+
+> (regexp-match-positions #rx"grey(?!hound)"
+    "the gray greyhound ate the grey socks")
+
+'((27 . 31))
+
+正则表达式#rx"grey(?!hound)"匹配grey，但只有hound不跟着它才行。因此grey仅仅在socks之前才匹配。
