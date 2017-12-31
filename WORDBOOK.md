@@ -33,6 +33,7 @@
 - exercise 运用
 - escape 转义
 - matche 匹配
+- alternate 替代
 
 ## 内置数据名称
 - boolean 布尔值
@@ -85,3 +86,4 @@
 - cluster 簇（代表模式匹配的样板聚集的状态，翻译成簇更合适。）
 - modifier 修饰符
 - cloister 回廊
+- sink 池（比如数据池。感觉翻译成“池”比“槽”更通俗易懂一些）
