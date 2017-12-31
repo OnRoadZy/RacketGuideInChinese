@@ -1,0 +1,21 @@
+9.9.2 向后查找
+
+用?<=正向后查找检查其子模式可以立即向文本字符串的当前位置左侧匹配。
+
+> (regexp-match-positions #rx"(?<=grey)hound"
+    "the hound in the picture is not a greyhound")
+
+'((38 . 43))
+
+正则表达式#rx"(?<=grey)hound"匹配hound，但前提是它是先于grey的。
+
+用?<!负向后查找检查它的子模式不可能立即匹配左侧。
+
+> (regexp-match-positions #rx"(?<!grey)hound"
+    "the greyhound in the picture is not a hound")
+
+'((38 . 43))
+
+正则表达式#rx"(?<!grey)hound"匹配hound，但前提是它不是先于grey的。
+
+向前查找和向后查找在它们不混淆时可以是实用的。
