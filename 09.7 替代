@@ -1,0 +1,42 @@
+9.7 替代
+
+你可以通过用|分隔它们来指定列表的替代子模式。在最近的封闭簇里|分隔子模式（或在整个模式字符串里，假如没有封闭括号）。
+
+> (regexp-match #rx"f(ee|i|o|um)" "a small, final fee")
+
+'("fi" "i")
+> (regexp-replace* #rx"([yi])s(e[sdr]?|ing|ation)"
+                   (string-append
+                    "analyse an energising organisation"
+                    " pulsing with noisy organisms")
+                   "\\1z\\2")
+
+"analyze an energizing organization pulsing with noisy organisms"
+
+不过注意，如果你想使用簇仅仅是指定替代子模式列表，却不想指定匹配项，那么使用(?:代替(。
+
+> (regexp-match #rx"f(?:ee|i|o|um)" "fun for all")
+
+'("fo")
+
+注意替代的一个重要事情是，最左匹配替代不管长短 。因此，如果一个替代是后一个替代的前缀，后者可能没有机会匹配。
+
+> (regexp-match #rx"call|call-with-current-continuation"
+                "call-with-current-continuation")
+
+'("call")
+
+为了让较长的替代在匹配中有一个镜头，把它放在较短的一个之前：
+
+> (regexp-match #rx"call-with-current-continuation|call"
+                "call-with-current-continuation")
+
+'("call-with-current-continuation")
+
+在任何情况下，对于整个正则表达式的整体匹配总是倾向于整体的不匹配。在下面这里，较长的替代仍然更好，因为它的较短的前缀不能产生整体匹配。
+
+> (regexp-match
+   #rx"(?:call|call-with-current-continuation) constrained"
+   "call-with-current-continuation constrained")
+
+'("call-with-current-continuation constrained")
