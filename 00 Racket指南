@@ -186,8 +186,8 @@
 
 11 迭代和推导（OK）
   11.1 序列构造（OK）
-  11.2 for和for*（……）
-  11.3 for/list和for*/list
+  11.2 for和for*（OK）
+  11.3 for/list和for*/list（……）
   11.4 for/vector和for*/vector
   11.5 for/and和for/or
   11.6 for/first和for/last
