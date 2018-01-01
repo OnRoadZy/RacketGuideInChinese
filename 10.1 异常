@@ -1,0 +1,101 @@
+10.1 异常
+
+每当发生运行时错误时，就会引发异常（exception）。除非捕获异常，然后通过打印与异常相关联的消息来处理，然后从计算中逃逸。
+
+> (/ 1 0)
+
+/: division by zero
+> (car 17)
+
+car: contract violation
+
+  expected: pair?
+
+  given: 17
+  
+  若要捕获异常，请使用with-handlers表：
+  
+ (with-handlers ([predicate-expr handler-expr] ...)
+  body ...+)
+  
+在处理中的每个predicate-expr确定一种异常，它是由with-handlers表捕获，代表异常的值传递给处理器程序由handler-expr生成。handler-expr的结果即with-handlers表达式的结果。
+
+例如，零做除数错误创建了exn:fail:contract:divide-by-zero结构类型：
+
+> (with-handlers ([exn:fail:contract:divide-by-zero?
+                   (lambda (exn) +inf.0)])
+    (/ 1 0))
+
++inf.0
+> (with-handlers ([exn:fail:contract:divide-by-zero?
+                   (lambda (exn) +inf.0)])
+    (car 17))
+
+car: contract violation
+
+  expected: pair?
+
+  given: 17
+
+error函数是引起异常的一种方法。它打包一个错误信息及其它信息进入到exn:fail结构：
+
+> (error "crash!")
+
+crash!
+> (with-handlers ([exn:fail? (lambda (exn) 'air-bag)])
+    (error "crash!"))
+
+'air-bag
+
+ exn:fail:contract:divide-by-zero和exn:fail结构类型是exn结构类型的子类型。核心表和核心函数引起的异常总是创建exn的或其子类的一个实例，但异常不必通过结构表示。raise函数允许你创建任何值作为异常：
+ 
+ > (raise 2)
+
+uncaught exception: 2
+> (with-handlers ([(lambda (v) (equal? v 2)) (lambda (v) 'two)])
+    (raise 2))
+
+'two
+> (with-handlers ([(lambda (v) (equal? v 2)) (lambda (v) 'two)])
+    (/ 1 0))
+
+/: division by zero
+
+在一个with-handlers表里的多个predicate-expr让你在不同的途径处理各种不同的异常。判断按顺序进行尝试，如果没有匹配，则将异常传播到封闭上下文中。
+
+> (define (always-fail n)
+    (with-handlers ([even? (lambda (v) 'even)]
+                    [positive? (lambda (v) 'positive)])
+      (raise n)))
+> (always-fail 2)
+
+'even
+> (always-fail 3)
+
+'positive
+> (always-fail -3)
+
+uncaught exception: -3
+> (with-handlers ([negative? (lambda (v) 'negative)])
+   (always-fail -3))
+
+'negative
+
+使用(lambda (v) #t)作为一个判断捕获所有异常，当然：
+
+> (with-handlers ([(lambda (v) #t) (lambda (v) 'oops)])
+    (car 17))
+
+'oops
+
+然而，捕获所有异常通常是个坏主意。如果用户在一个终端窗口键入ctl-c或者在DrRacket点击停止按钮（Stop）中断计算，然后通常exn:break异常不应该被捕获。仅仅应该抓取具有代表性的错误，使用exn:fail?作为判断：
+
+> (with-handlers ([exn:fail? (lambda (v) 'oops)])
+    (car 17))
+
+'oops
+> (with-handlers ([exn:fail? (lambda (v) 'oops)])
+    (break-thread (current-thread)) ; 模拟Ctl-C
+    (car 17))
+
+user break
