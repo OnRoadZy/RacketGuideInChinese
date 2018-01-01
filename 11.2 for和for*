@@ -1,0 +1,92 @@
+11.2 for和for*
+
+更完整的语法是
+
+(for (clause ...)
+  body ...+)
+ 
+clause	 	=	 	[id sequence-expr]
+ 	 	|	 	#:when boolean-expr
+ 	 	|	 	#:unless boolean-expr
+
+当多个[id sequence-expr]从句在for表里提供时，相应的序列并行遍历：
+
+> (for ([i (in-range 1 4)]
+        [chapter '("Intro" "Details" "Conclusion")])
+    (printf "Chapter ~a. ~a\n" i chapter))
+
+Chapter 1. Intro
+
+Chapter 2. Details
+
+Chapter 3. Conclusion
+
+对于并行序列，for表达式在任何序列结束时停止迭代。这种行为允许in-naturals创造数值的无限序列，可用于索引：
+
+    > (for ([i (in-naturals 1)]
+            [chapter '("Intro" "Details" "Conclusion")])
+        (printf "Chapter ~a. ~a\n" i chapter))
+
+    Chapter 1. Intro
+
+    Chapter 2. Details
+
+    Chapter 3. Conclusion
+
+for*表具有与for语法相同的语法，嵌套多个序列，而不是并行运行它们：
+
+> (for* ([book '("Guide" "Reference")]
+         [chapter '("Intro" "Details" "Conclusion")])
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+
+Reference Intro
+
+Reference Details
+
+Reference Conclusion
+
+因此，for*是对嵌套for的一个简写，以同样的方式let*是一个let嵌套的简写。
+
+一个clause的#:when boolean-expr表是另一个简写。仅当boolean-expr产生一个真值时它允许body求值：
+
+> (for* ([book '("Guide" "Reference")]
+         [chapter '("Intro" "Details" "Conclusion")]
+         #:when (not (equal? chapter "Details")))
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Conclusion
+
+Reference Intro
+
+Reference Conclusion
+
+一个带#:when的boolean-expr可以适用于任何上述迭代绑定。在一个for表里，仅仅如果在前面绑定的迭代测试是嵌套的时，这个范围是有意义的；因此，用#:when隔离绑定是多重嵌套的，而不是平行的，甚至于用for也一样。
+
+> (for ([book '("Guide" "Reference" "Notes")]
+        #:when (not (equal? book "Notes"))
+        [i (in-naturals 1)]
+        [chapter '("Intro" "Details" "Conclusion" "Index")]
+        #:when (not (equal? chapter "Index")))
+    (printf "~a Chapter ~a. ~a\n" book i chapter))
+
+Guide Chapter 1. Intro
+
+Guide Chapter 2. Details
+
+Guide Chapter 3. Conclusion
+
+Reference Chapter 1. Intro
+
+Reference Chapter 2. Details
+
+Reference Chapter 3. Conclusion
+
+一个#:unless从句和一个#:when从句是类似的，但仅当boolean-expr产生一个非值时body求值。
