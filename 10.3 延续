@@ -1,0 +1,54 @@
+10.3 延续
+
+延续（continuation）是一个值，该值封装了表达式的求值上下文。call-with-composable-continuation函数从当前函数调用和运行到最近的外围提示捕获当前延续。（记住，每个REPL互动都是隐含地封装在REPL提示中。）
+
+例如，在下面内容里
+
+(+ 1 (+ 1 (+ 1 0)))
+
+在求值0的位置时，表达式上下文包含三个嵌套的加法表达式。我们可以通过更改0来获取上下文，然后在返回0之前获取延续：
+
+> (define saved-k #f)
+> (define (save-it!)
+    (call-with-composable-continuation
+     (lambda (k) ; k is the captured continuation
+       (set! saved-k k)
+       0)))
+> (+ 1 (+ 1 (+ 1 (save-it!))))
+
+3
+
+保存在save-k中的延续封装程序上下文(+ 1 (+ 1 (+ 1 ?)))，?代表插入结果值的位置——因为在save-it!被调用时这是表达式上下文。延续被封装从而其行为类似于函数(lambda (v) (+ 1 (+ 1 (+ 1 v))))：
+
+> (saved-k 0)
+
+3
+> (saved-k 10)
+
+13
+> (saved-k (saved-k 0))
+
+6
+
+通过call-with-composable-continuation捕获延续是动态确定的，没有语法。例如，用
+
+> (define (sum n)
+    (if (zero? n)
+        (save-it!)
+        (+ n (sum (sub1 n)))))
+> (sum 5)
+
+15
+
+在saved-k里延续成为(lambda (x) (+ 5 (+ 4 (+ 3 (+ 2 (+ 1 x))))))：
+
+> (saved-k 0)
+
+15
+> (saved-k 10)
+
+25
+
+在Racket（或Scheme）中较传统的延续运算符是call-with-current-continuation，它通常缩写为call/cc。这是像call-with-composable-continuation，但应用捕获的延续在还原保存的延续前首先中止（对于当前提示）。此外，Scheme系统传统上支持程序启动时的单个提示符，而不是通过call-with-continuation-prompt允许新提示。在Racket中延续有时被称为分隔的延续（delimited continuations），因为一个程序可以引入新定义的提示，并且作为call-with-composable-continuation捕获的延续有时被称为组合的延续（composable continuations），因为他们没有一个内置的abort。
+
+作为一个延续是多么有用的例子，请参见《更多，用Racket进行系统编程》（More: Systems Programming with Racket）。对于具体的控制操作符，它有比这里描述的原语更恰当的名字，请参见《racket/control》部分。
