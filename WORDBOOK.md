@@ -34,6 +34,8 @@
 - escape 转义
 - matche 匹配
 - alternate 替代
+- caught 捕获
+- wrap 封装
 
 ## 内置数据名称
 - boolean 布尔值
@@ -87,3 +89,4 @@
 - modifier 修饰符
 - cloister 回廊
 - sink 池（比如数据池。感觉翻译成“池”比“槽”更通俗易懂一些）
+- exception 异常
