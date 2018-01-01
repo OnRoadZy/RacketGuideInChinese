@@ -1,0 +1,32 @@
+10.2 提示和中止
+
+当一个异常被引发时，控制将从一个任意深度的求值上下文逃逸到异常被捕获的位置——或者如果没有捕捉到异常，那么所有的出路都会消失：
+
+> (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (/ 1 0)))))))
+
+/: division by zero
+
+但如果控制逃逸”所有的出路“，为什么REPL在一个错误被打印之后能够继续运行？你可能会认为这是因为REPL把每一个互动封装进了with-handlers表里，它抓取了所有的异常，但这确实不是原因。
+
+实际的原因是，REPL用一个提示封装了互动，有效地用一个逃逸位置标记求值上下文。如果一个异常没有被捕获，那么关于异常的信息被打印印刷，然后求值中止到最近的封闭提示。更确切地说，每个提示有提示标签（prompt tag），并有指定的默认提示标签，未捕获的异常处理程序使用中止。
+
+call-with-continuation-prompt函数用一个给定的提示标签设置提示，然后在提示符下对一个给定的thunk求值。default-continuation-prompt-tag函数返回默认提示标记。abort-current-continuation函数转义到具有给定提示标记的最近的封闭提示符。
+
+> (define (escape v)
+    (abort-current-continuation
+     (default-continuation-prompt-tag)
+     (lambda () v)))
+> (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (escape 0)))))))
+
+0
+> (+ 1
+     (call-with-continuation-prompt
+      (lambda ()
+        (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (+ 1 (escape 0))))))))
+      (default-continuation-prompt-tag)))
+
+1
+
+在上面的escape中，值V被封装在一个过程中，该过程在转义到封闭提示符后被调用。
+
+提示和中止看起来非常像异常处理和引发。事实上，提示和中止本质上是一种更原始的异常形式，与with-handlers和raise都是按提示执行和中止。更原始形式的权力与操作符名称中的“延续（continuation）”一词有关，我们将在下一节中讨论。
