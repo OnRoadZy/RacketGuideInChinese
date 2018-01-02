@@ -190,13 +190,13 @@
   11.3 for/list和for*/list（OK）
   11.4 for/vector和for*/vector（OK）
   11.5 for/and和for/or（OK）
-  11.6 for/first和for/last（……）
-  11.7 for/fold和for*fold
-  11.8 多值序列
-  11.9 打断迭代
-  11.10 迭代性能
+  11.6 for/first和for/last（OK）
+  11.7 for/fold和for*fold（OK）
+  11.8 多值序列（OK）
+  11.9 打断迭代（OK）
+  11.10 迭代性能（OK）
 
-12 模式匹配
+12 模式匹配（……）
 
 13 类和对象
   13.1 方法
