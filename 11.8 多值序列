@@ -1,0 +1,20 @@
+11.8 多值序列
+
+同样，一个函数或表达式可以生成多个值，序列的单个迭代可以生成多个元素。例如，作为一个序列的哈希表生成两个迭代的两个值：一个键和一个值。
+
+同样，let-values将多个结果绑定到多个标识符，for能将多个序列元素绑定到多个迭代标识符：
+
+> (for ([(k v) #hash(("apple" . 1) ("banana" . 3))])
+    (printf "~a count: ~a\n" k v))
+
+apple count: 1
+
+banana count: 3
+
+这种扩展到多值绑定对所有变量都适用。例如，对于列表嵌套迭代，构建一个列表，也可以处理多值序列：
+
+> (for*/list ([(k v) #hash(("apple" . 1) ("banana" . 3))]
+              [(i) (in-range v)])
+    k)
+
+'("apple" "banana" "banana" "banana")
