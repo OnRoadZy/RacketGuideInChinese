@@ -1,0 +1,53 @@
+11.7 for/fold和for*fold
+
+for/fold表是合并迭代结果的一种非常通用的方法。它的语法与原来的for语法略有不同，因为必须在开始时声明累积变量：
+
+(for/fold ([accum-id init-expr] ...)
+          (clause ...)
+  body ...+)
+
+在简单的情况下，仅提供一个 [accum-id init-expr]，那么for/fold的结果是accum-id的最终值，并启动了init-expr的值。在clause和body、accum-id可参照获得其当前值，并且最后的body为下一次迭代的提供accum-id值。
+
+例如：
+
+> (for/fold ([len 0])
+            ([chapter '("Intro" "Conclusion")])
+    (+ len (string-length chapter)))
+
+15
+> (for/fold ([prev #f])
+            ([i (in-naturals 1)]
+             [chapter '("Intro" "Details" "Details" "Conclusion")]
+             #:when (not (equal? chapter prev)))
+    (printf "~a. ~a\n" i chapter)
+    chapter)
+
+1. Intro
+
+2. Details
+
+4. Conclusion
+
+"Conclusion"
+
+当多个accum-id被指定，那么最后的body必须产生多值，每一个对应accum-id. for/fold的表达本身产生多值给结果。
+
+例如:
+
+> (for/fold ([prev #f]
+             [counter 1])
+            ([chapter '("Intro" "Details" "Details" "Conclusion")]
+             #:when (not (equal? chapter prev)))
+    (printf "~a. ~a\n" counter chapter)
+    (values chapter
+            (add1 counter)))
+
+1. Intro
+
+2. Details
+
+3. Conclusion
+
+"Conclusion"
+
+4
