@@ -1,0 +1,34 @@
+11.6 for/first和for/last
+
+for/first表返回第一次对body进行求值的结果，跳过了进一步的迭代。这个带有一个#:when从句的表是最非常有用的。
+
+> (for/first ([chapter '("Intro" "Details" "Conclusion" "Index")]
+              #:when (not (equal? chapter "Intro")))
+    chapter)
+
+"Details"
+
+如果body求值进行零次，那么结果是#f。
+
+for/last表运行所有迭代，返回最后一次迭代的值（或如果没有迭代运行返回#f）：
+
+> (for/last ([chapter '("Intro" "Details" "Conclusion" "Index")]
+              #:when (not (equal? chapter "Index")))
+    chapter)
+
+"Conclusion"
+
+通常， for*/first和for*/last表提供和嵌套迭代相同的工具：
+
+> (for*/first ([book '("Guide" "Reference")]
+               [chapter '("Intro" "Details" "Conclusion" "Index")]
+               #:when (not (equal? chapter "Intro")))
+    (list book chapter))
+
+'("Guide" "Details")
+> (for*/last ([book '("Guide" "Reference")]
+              [chapter '("Intro" "Details" "Conclusion" "Index")]
+              #:when (not (equal? chapter "Index")))
+    (list book chapter))
+
+'("Reference" "Conclusion")
