@@ -1,0 +1,52 @@
+11.10 迭代性能
+
+理想情况下，作为递归函数调用，一个for迭代的运行速度应该与手工编写的循环一样快。然而，手写循环通常是针对特定类型的数据，如列表。在这种情况下，手写循环直接使用选择器，比如car和cdr，而不是处理所有序列表并分派给合适的迭代器。
+
+当足够的信息反复提供给迭代序列时，for表可以提供手写循环的性能。具体来说，从句应具有下列fast-clause表之一：
+
+  fast-clause	 	=	 	[id fast-seq]
+ 	 	|	 	[(id) fast-seq]
+ 	 	|	 	[(id id) fast-indexed-seq]
+ 	 	|	 	[(id ...) fast-parallel-seq]
+
+  fast-seq	 	=	 	(in-range expr)
+ 	 	|	 	(in-range expr expr)
+ 	 	|	 	(in-range expr expr expr)
+ 	 	|	 	(in-naturals)
+ 	 	|	 	(in-naturals expr)
+ 	 	|	 	(in-list expr)
+ 	 	|	 	(in-vector expr)
+ 	 	|	 	(in-string expr)
+ 	 	|	 	(in-bytes expr)
+ 	 	|	 	(in-value expr)
+ 	 	|	 	(stop-before fast-seq predicate-expr)
+ 	 	|	 	(stop-after fast-seq predicate-expr)
+
+  fast-indexed-seq	 	=	 	(in-indexed fast-seq)
+ 	 	|	 	(stop-before fast-indexed-seq predicate-expr)
+ 	 	|	 	(stop-after fast-indexed-seq predicate-expr)
+
+  fast-parallel-seq	 	=	 	(in-parallel fast-seq ...)
+ 	 	|	 	(stop-before fast-parallel-seq predicate-expr)
+ 	 	|	 	(stop-after fast-parallel-seq predicate-expr)
+
+例如：
+
+> (time (for ([i (in-range 100000)])
+          (for ([elem (in-list '(a b c d e f g h))]) ;较慢
+            (void))))
+
+cpu time: 7 real time: 2 gc time: 0
+> (time (for ([i (in-range 100000)])
+          (for ([elem '(a b c d e f g h)])           ;较慢
+            (void))))
+
+cpu time: 216 real time: 56 gc time: 0
+> (time (let ([seq (in-list '(a b c d e f g h))])
+          (for ([i (in-range 100000)])
+            (for ([elem seq])                        ;较慢
+              (void)))))
+
+cpu time: 227 real time: 59 gc time: 0
+
+上面的语法是不完整的，因为提供良好性能的语法模式集是可扩展的，就像序列值集一样。序列构造器的文档应该说明直接使用for从句的性能优势。
