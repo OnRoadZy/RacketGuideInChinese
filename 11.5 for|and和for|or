@@ -1,0 +1,17 @@
+11.5 for/and和for/or
+
+for/and表用and组合迭代结果，一旦遇到#f就停止：
+
+    > (for/and ([chapter '("Intro" "Details" "Conclusion")])
+        (equal? chapter "Intro"))
+
+    #f
+
+for/or表用or组合迭代结果，一旦遇到真值立即停止：
+
+> (for/or ([chapter '("Intro" "Details" "Conclusion")])
+    (equal? chapter "Intro"))
+
+#t
+
+与通常一样，for*/and和for*/or表提供与嵌套迭代相同的功能。
