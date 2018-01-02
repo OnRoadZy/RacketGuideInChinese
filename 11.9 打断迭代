@@ -1,0 +1,98 @@
+11.9 打断迭代
+
+一个更完整的for的语法是
+
+(for (clause ...)
+  body-or-break ... body)
+ 
+clause	 	=	 	[id sequence-expr]
+ 	 	|	 	#:when boolean-expr
+ 	 	|	 	#:unless boolean-expr
+ 	 	|	 	break
+ 	 	 	 	 
+body-or-break	 	=	 	body
+ 	 	|	 	break
+ 	 	 	 	 
+break	 	=	 	#:break boolean-expr
+ 	 	|	 	#:final boolean-expr
+
+那是，一个#:break或#:final从句可以包括绑定从句和body之间的迭代。在绑定从句之间，当它的boolean-expr为真时，#:break像#:unless，在for之间的所有序列停止。处在body内，除了当boolean-expr是真时，#:break对序列有一样的效果，并且它也阻止随后的body从当前迭代的求值。
+
+例如，当在有效跳跃后的序列以及主体之间使用#:unless，
+
+> (for ([book '("Guide" "Story" "Reference")]
+        #:unless (equal? book "Story")
+        [chapter '("Intro" "Details" "Conclusion")])
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+
+Reference Intro
+
+Reference Details
+
+Reference Conclusion
+
+使用#:break致使整个for迭代终止：
+
+> (for ([book '("Guide" "Story" "Reference")]
+        #:break (equal? book "Story")
+        [chapter '("Intro" "Details" "Conclusion")])
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+> (for* ([book '("Guide" "Story" "Reference")]
+         [chapter '("Intro" "Details" "Conclusion")])
+    #:break (and (equal? book "Story")
+                 (equal? chapter "Conclusion"))
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+
+Story Intro
+
+Story Details
+
+一个#:final从句类似于#:break，但它不立即终止迭代。相反，它最多地允许为每一个序列和最多再一个body的求值绘制再一个元素。
+
+> (for* ([book '("Guide" "Story" "Reference")]
+         [chapter '("Intro" "Details" "Conclusion")])
+    #:final (and (equal? book "Story")
+                 (equal? chapter "Conclusion"))
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+
+Story Intro
+
+Story Details
+
+Story Conclusion
+> (for ([book '("Guide" "Story" "Reference")]
+        #:final (equal? book "Story")
+        [chapter '("Intro" "Details" "Conclusion")])
+    (printf "~a ~a\n" book chapter))
+
+Guide Intro
+
+Guide Details
+
+Guide Conclusion
+
+Story Intro
