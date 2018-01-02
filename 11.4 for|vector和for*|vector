@@ -1,0 +1,23 @@
+11.4 for/vector和for*/vector
+
+for/vector表可以使用与for/list表相同的语法，但是对body的求值进入一个新构造的向量而不是列表：
+
+> (for/vector ([i (in-naturals 1)]
+               [chapter '("Intro" "Details" "Conclusion")])
+    (string-append (number->string i) ". " chapter))
+
+'#("1. Intro" "2. Details" "3. Conclusion")
+
+
+for*/vector表的行为类似，但迭代嵌套和for*一样。
+
+ for/vector和for*/vector表也允许构造向量的长度，在预先提供的情况下。由此产生的迭代可以比for/vector或for*/vector更有效地执行：
+ 
+ > (let ([chapters '("Intro" "Details" "Conclusion")])
+    (for/vector #:length (length chapters) ([i (in-naturals 1)]
+                                            [chapter chapters])
+      (string-append (number->string i) ". " chapter)))
+
+'#("1. Intro" "2. Details" "3. Conclusion")
+
+如果提供了一个长度，当vector被填充或被请求完成时迭代停止，而无论哪个先来。如果所提供的长度超过请求的迭代次数，则向量中的剩余槽被初始化为make-vector的缺省参数。
