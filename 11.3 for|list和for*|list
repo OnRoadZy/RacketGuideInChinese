@@ -1,0 +1,30 @@
+11.3 for/list和for*/list
+
+for/list表具有与for相同的语法，它对body求值以获取进入新构造列表的值：
+
+> (for/list ([i (in-naturals 1)]
+             [chapter '("Intro" "Details" "Conclusion")])
+    (string-append (number->string i) ". " chapter))
+
+'("1. Intro" "2. Details" "3. Conclusion")
+
+在一个for-list表中的一个#:when从句随着body的求值修整结果列表：
+
+> (for/list ([i (in-naturals 1)]
+             [chapter '("Intro" "Details" "Conclusion")]
+             #:when (odd? i))
+    chapter)
+
+'("Intro" "Conclusion")
+
+#:when的这种修剪行为使用for/list比for更有用。而对for来说扁平的when表通常是满足需要的，一个for/list里的一个when表达表会导致结果列表包含 #<void>以代替省略列表元素。
+
+ for*/list表类似于for*，嵌套多个迭代：
+ 
+> (for*/list ([book '("Guide" "Ref.")]
+              [chapter '("Intro" "Details")])
+    (string-append book " " chapter))
+
+'("Guide Intro" "Guide Details" "Ref. Intro" "Ref. Details")
+
+for*/list表与嵌套for/list表不太一样。嵌套for/list将生成一个列表的列表，而不是一个扁平列表。非常像#:when，那么，for*/list的嵌套比for*的嵌套更有用。
