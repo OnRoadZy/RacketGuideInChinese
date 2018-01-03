@@ -1,0 +1,40 @@
+13 类和对象
+
+类表达式表示一类值，就像lambda表达式一样：
+
+(class superclass-expr decl-or-expr ...)
+
+ superclass-expr确定为新类的基类。每个decl-or-expr既是一个声明，关系到对方法、字段和初始化参数，也是一个表达式，每次求值就实例化类。换句话说，与方法之类的构造器不同，类具有与字段和方法声明交错的初始化表达式。
+
+按照惯例，类名以%结束。内置根类是object%。下面的表达式用公共方法get-size、grow和eat创建一个类：
+
+(class object%
+  (init size)                ; 初始化参数
+ 
+  (define current-size size) ; 字段
+ 
+  (super-new)                ; 基类初始化
+ 
+  (define/public (get-size)
+    current-size)
+ 
+  (define/public (grow amt)
+    (set! current-size (+ amt current-size)))
+ 
+  (define/public (eat other-fish)
+    (grow (send other-fish get-size))))
+
+当通过new表实例化类时，size的初始化参数必须通过一个命名参数提供：
+
+(new (class object% (init size) ....) [size 10])
+
+当然，我们还可以命名类及其实例：
+
+(define fish% (class object% (init size) ....))
+(define charlie (new fish% [size 10]))
+
+在fish%的定义中，current-size是一个以size值初始化参数开头的私有字段。像size这样的初始化参数只有在类实例化时才可用，因此不能直接从方法引用它们。与此相反，current-size字段可用于方法。
+
+在fish%中的(super-new)表达式调用基类的初始化。在这种情况下，基类是object%，它没有带初始化参数也没有执行任何工作；必须使用super-new，因为一个类总必须总是调用其基类的初始化。
+
+初始化参数、字段声明和表达式如(super-new)可以以类（class）中的任何顺序出现，并且它们可以与方法声明交织在一起。类中表达式的相对顺序决定了实例化过程中的求值顺序。例如，如果一个字段的初始值需要调用一个方法，它只有在基类初始化后才能工作，然后字段声明必须放在super-new调用后。以这种方式排序字段和初始化声明有助于规避不可避免的求值。方法声明的相对顺序对求值没有影响，因为方法在类实例化之前被完全定义。
