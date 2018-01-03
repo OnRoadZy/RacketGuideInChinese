@@ -1,0 +1,70 @@
+13.1 方法
+
+fish%中的三个define/public声明都引入了一种新方法。声明使用与Racket函数相同的语法，但方法不能作为独立函数访问。调用fish%对象的grow方法需要send表：
+
+> (send charlie grow 6)
+> (send charlie get-size)
+
+16
+
+在fish%中，自方法可以被像函数那样调用，因为方法名在作用域中。例如，fish%中的eat方法直接调用grow方法。在类中，试图以除方法调用以外的任何方式使用方法名会导致语法错误。
+
+在某些情况下，一个类必须调用由基类提供但不能被重写的方法。在这种情况下，类可以使用带this的send来访问该方法：
+
+(define hungry-fish% (class fish% (super-new)
+                       (define/public (eat-more fish1 fish2)
+                         (send this eat fish1)
+                         (send this eat fish2))))
+
+另外，类可以声明一个方法使用inherit（继承）的存在，该方法将方法名引入到直接调用的作用域中：
+
+define hungry-fish% (class fish% (super-new)
+                       (inherit eat)
+                       (define/public (eat-more fish1 fish2)
+                         (eat fish1) (eat fish2))))
+
+在inherit声明中，如果fish%没有提供一个eat方法，那么在对hungry-fish%类表的求值中会出现一个错误。与此相反，用(send this ....)，直到eat-more方法被调和send表被求值前不会发出错误信号。因此，inherit是首选。
+
+send的另一个缺点是它比inherit效率低。一个方法的请求通过send调用寻找在运行时在目标对象的类的方法，使send类似于java方法调用接口。相反，基于inherit的方法调用使用一个类的方法表中的偏移量，它在类创建时计算。
+
+为了在从方法类之外调用方法时实现与继承方法调用类似的性能，程序员必须使用generic（泛型）表，它生成一个特定类和特定方法的generic方法，用send-generic调用：
+
+(define get-fish-size (generic fish% get-size))
+
+ 
+> (send-generic charlie get-fish-size)
+
+16
+> (send-generic (new hungry-fish% [size 32]) get-fish-size)
+
+32
+> (send-generic (new object%) get-fish-size)
+
+generic:get-size: target is not an instance of the generic's
+
+class
+
+  target: (object)
+
+  class name: fish%
+
+粗略地说，表单将类和外部方法名转换为类方法表中的位置。如上一个例子所示，通过泛型方法发送检查它的参数是泛型类的一个实例。
+
+
+是否在class内直接调用方法，通过泛型方法，或通过send，方法以通常的方式重写工程：
+
+(define picky-fish% (class fish% (super-new)
+                      (define/override (grow amt)
+ 
+                        (super grow (* 3/4 amt)))))
+(define daisy (new picky-fish% [size 20]))
+
+ 
+> (send daisy eat charlie)
+> (send daisy get-size)
+
+32
+
+在picky-fish%的grow方法是用define/override声明的，而不是define/public，因为grow是作为一个重写的申明的意义。如果grow已经用define/public声明，那么在对类表达式求值时会发出一个错误，因为fish%已经提供了grow。
+
+使用define/override也允许通过super调用调用重写的方法。例如，grow在picky-fish%实现使用super代理给基类的实现。
