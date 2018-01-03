@@ -1,0 +1,129 @@
+12 模式匹配
+
+match表支持对任意Racket值的模式匹配，而不是像rregexp-match那样的函数，将正则表达式与字符及字节序列比较（参见《正则表达式》（Regular Expressions））。
+
+(match target-expr
+  [pattern expr ...+] ...)
+
+match表获取target-expr的结果并试图按顺序匹配每个pattern。一旦它找到一个匹配，对相应的expr序列求值以得到匹配表的结果。如果pattern包括模式变量，他们被当作通配符，并且在expr里的每个变量被绑定给的被匹配的输入片段。
+
+大多数Racket的字面表达式可以用作模式：
+
+> (match 2
+    [1 'one]
+    [2 'two]
+    [3 'three])
+
+'two
+> (match #f
+    [#t 'yes]
+    [#f 'no])
+
+'no
+> (match "apple"
+    ['apple 'symbol]
+    ["apple" 'string]
+    [#f 'boolean])
+
+'string
+
+像cons、list和vector这样的构造器，可以用于创建模式，以匹配pairs、lists和vectors：
+
+> (match '(1 2)
+    [(list 0 1) 'one]
+    [(list 1 2) 'two])
+
+'two
+> (match '(1 . 2)
+    [(list 1 2) 'list]
+    [(cons 1 2) 'pair])
+
+'pair
+> (match #(1 2)
+    [(list 1 2) 'list]
+    [(vector 1 2) 'vector])
+
+'vector
+
+用struct绑定的构造器也可以用作一个模式构造器：
+
+> (struct shoe (size color))
+> (struct hat (size style))
+> (match (hat 23 'bowler)
+   [(shoe 10 'white) "bottom"]
+   [(hat 23 'bowler) "top"])
+
+"top"
+
+不带引号的，在一个模式中的非构造器标识符是模式变量，它在结果表达式中被绑定，除了_，它不绑定（因此，这通常是作为一个泛称）：
+
+> (match '(1)
+    [(list x) (+ x 1)]
+    [(list x y) (+ x y)])
+
+2
+> (match '(1 2)
+    [(list x) (+ x 1)]
+    [(list x y) (+ x y)])
+
+3
+> (match (hat 23 'bowler)
+    [(shoe sz col) sz]
+    [(hat sz stl) sz])
+
+23
+> (match (hat 11 'cowboy)
+    [(shoe sz 'black) 'a-good-shoe]
+    [(hat sz 'bowler) 'a-good-hat]
+    [_ 'something-else])
+
+'something-else
+
+省略号，写作...，就像在一个列表或向量模式中的一个克林星：前面的子模式可以用于对列表或向量元素的任意数量的连续元素的任意次匹配。如果后跟省略号的子模式包含一个模式变量，这个变量会匹配多次，并在结果表达式里被绑定到一个匹配列表中：
+
+> (match '(1 1 1)
+    [(list 1 ...) 'ones]
+    [_ 'other])
+
+'ones
+> (match '(1 1 2)
+    [(list 1 ...) 'ones]
+    [_ 'other])
+
+'other
+> (match '(1 2 3 4)
+    [(list 1 x ... 4) x])
+
+'(2 3)
+> (match (list (hat 23 'bowler) (hat 22 'pork-pie))
+    [(list (hat sz styl) ...) (apply + sz)])
+
+45
+
+省略号可以嵌套以匹配嵌套的重复，在这种情况下，模式变量可以绑定到匹配列表中：
+
+> (match '((! 1) (! 2 2) (! 3 3 3))
+    [(list (list '! x ...) ...) x])
+
+'((1) (2 2) (3 3 3))
+
+quasiquote表（见《Quasiquoting：quasiquote和`》获取更多关于它的信息）还可以用来建立模式。而一个通常的quasiquote表的unquoted部分意味着普通的racket求值，这里unquoted部分意味着回到普通模式匹配。
+
+因此，在下面的例子中，with表达模式是模式并且它被改写成应用表达式，在第一个例子里用quasiquote作为一个模式，在第二个例子里quasiquote构建一个表达式。
+
+> (match `{with {x 1} {+ x 1}}
+    [`{with {,id ,rhs} ,body}
+     `{{lambda {,id} ,body} ,rhs}])
+
+'((lambda (x) (+ x 1)) 1)
+
+有关更多模式表的信息，请参见《racket/match》。
+
+像match-let表和match-lambda表支持位置模式，否则必须是标识符。例如，match-let概括let给一个破坏绑定：
+
+> (match-let ([(list x y z) '(1 2 3)])
+    (list z y x))
+
+'(3 2 1)
+
+有关这些附加表的信息，请参见《racket/match》。
