@@ -1,0 +1,28 @@
+13.2 初始化参数
+
+因为picky-fish%申明没有任何初始化参数，任何初始化值在(new picky-fish% ....)里提供都被传递给基类的初始化，即传递给fish%。子类可以在super-new调用其基类时提供额外的初始化参数，这样的初始化参数会优先于参数提供给new。例如，下面的size-10-fish%类总是产生大小为10的鱼：
+
+(define size-10-fish% (class fish% (super-new [size 10])))
+
+ 
+> (send (new size-10-fish%) get-size)
+
+10
+
+就size-10-fish%来说，用new提供一个size初始化参数会导致初始化错误；因为在super-new里的size优先，size提供给new没有目标申明。
+
+如果class表声明一个默认值，则初始化参数是可选的。例如，下面的default-10-fish%类接受一个size的初始化参数，但如果在实例里没有提供值那它的默认值是10：
+
+(define default-10-fish% (class fish%
+                           (init [size 10])
+                           (super-new [size size])))
+
+ 
+> (new default-10-fish%)
+
+(object:default-10-fish% ...)
+> (new default-10-fish% [size 20])
+
+(object:default-10-fish% ...)
+
+在这个例子中，super-new调用传递它自己的size值作为size初始化初始化参数传递给基类。
