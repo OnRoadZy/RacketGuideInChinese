@@ -36,6 +36,7 @@
 - alternate 替代
 - caught 捕获
 - wrap 封装
+- shadow 覆盖
 
 ## 内置数据名称
 - boolean 布尔值
