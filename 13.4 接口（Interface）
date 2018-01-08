@@ -1,0 +1,20 @@
+13.4 接口（Interface）
+
+接口对于检查一个对象或一个类实现一组具有特定（隐含）行为的方法非常有用。接口的这种使用有帮助的，即使没有静态类型系统（那是java有接口的主要原因）。
+
+Racket中的接口通过使用interface表创建，它只声明需要去实现的接口的方法名称。接口可以扩展其它接口，这意味着接口的实现会自动实现扩展接口。
+
+(interface (superinterface-expr ...) id ...)
+
+为了声明一个实现一个接口的类，必须使用class*表代替class：
+
+(class* superclass-expr (interface-expr ...) decl-or-expr ...)
+
+例如，我们不必强制所有的fish类都是源自于fish%，我们可以定义fish-interface并改变fish%类来声明它实现了fish-interface：
+
+(define fish-interface (interface () get-size grow eat))
+(define fish% (class* object% (fish-interface) ....))
+
+如果fish%的定义不包括get-size、grow和eat方法，那么在class*表求值时会出现错误，因为实现fish-interface接口需要这些方法。
+
+is-a?判断接受一个对象作为它的第一个参数，同时类或接口作为它的第二个参数。当给了一个类，无论对象是该类的实例或者派生类的实例，is-a?都执行检查。当给一个接口，无论对象的类是否实现接口，is-a?都执行检查。另外，implementation?判断检查给定类是否实现给定接口。
