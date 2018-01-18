@@ -1,0 +1,41 @@
+13.6 控制外部名称的范围
+
+正如《内部和外部名称》（Internal and External Names）所指出的，类成员既有内部名称，也有外部名称。成员定义在本地绑定内部名称，此绑定可以在本地重命名。与此相反，外部名称默认情况下具有全局范围，成员定义不绑定外部名称。相反，成员定义指的是外部名称的现有绑定，其中成员名绑定到成员键（member key）；一个类最终将成员键映射到方法、字段和初始化参数。
+
+回头看hungry-fish%类表达式：
+
+(define hungry-fish% (class fish% ....
+                       (inherit eat)
+                       (define/public (eat-more fish1 fish2)
+                         (eat fish1) (eat fish2))))
+
+在求值过程中，hungry-fish%类和fish%类指相同的eat的全局绑定。在运行时，在hungry-fish%中调用eat是通过共享绑定到eat的方法键和fish%中的eat方法相匹配。
+
+对外部名称的默认绑定是全局的，但程序员可以用define-member-name表引入外部名称绑定。
+
+(define-member-name id member-key-expr)
+
+特别是，通过使用(generate-member-key)作为member-key-expr，外部名称可以为一个特定的范围局部化，因为生成的成员键范围之外的访问。换句话说，定义成员名称给外部名称一种私有包范围，但从包中概括为Racket中的任意绑定范围。
+
+例如，下面的fish%类和pond%类通过一个get-depth方法配合，只有这个配合类可以访问：
+
+(define-values (fish% pond%) ; two mutually recursive classes
+  (let ()
+    (define-member-name get-depth (generate-member-key))
+    (define fish%
+      (class ....
+        (define my-depth ....)
+        (define my-pond ....)
+        (define/public (dive amt)
+        (set! my-depth
+              (min (+ my-depth amt)
+                   (send my-pond get-depth))))))
+    (define pond%
+      (class ....
+        (define current-depth ....)
+        (define/public (get-depth) current-depth)))
+    (values fish% pond%)))
+
+外部名称在名称空间中，将它们与其它Racket名称分隔开。这个单独的命名空间被隐式地用于send中的方法名、在new中的初始化参数名称，或成员定义中的外部名称。特殊表 member-name-key提供对任意表达式位置外部名称的绑定的访问：(member-name-key id)在当前范围内生成id的成员键绑定。
+
+成员键值主要用于define-member-name表。通常，(member-name-key id)捕获id的方法键，以便它可以在不同的范围内传递到define-member-name的使用。这种能力证明推广混合是有用的，作为接下来的讨论。
