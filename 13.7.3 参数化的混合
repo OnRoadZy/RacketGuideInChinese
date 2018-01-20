@@ -1,0 +1,19 @@
+13.7.3 参数化的混合
+
+正如在《控制外部名称的范围》（Controlling the Scope of External Names）中指出的，外部名称可以用define-member-name绑定。这个工具允许一个混合用定义或使用的方法概括。例如，我们可以通过对eat的外部成员键的使用参数化hungry-mixin：
+
+(define (make-hungry-mixin eat-method-key)
+  (define-member-name eat eat-method-key)
+  (mixin () () (super-new)
+    (inherit eat)
+    (define/public (eat-more x y) (eat x) (eat y))))
+
+获得一个特定的hungry-mixin，我们必须应用这个函数到一个成员键，它指向一个适当的eat方法，我们可以获得member-name-key的使用：
+
+((make-hungry-mixin (member-name-key eat))
+ (class object% .... (define/public (eat x) 'yum)))
+
+以上，我们应用hungry-mixin给一个匿名类，它提供eat，但我们也可以把它和一个提供Chomp的类组合，相反：
+
+((make-hungry-mixin (member-name-key chomp))
+ (class object% .... (define/public (chomp x) 'yum)))
