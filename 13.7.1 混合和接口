@@ -1,0 +1,19 @@
+13.7.1 混合和接口
+
+使用implementation?，picky-mixin可以要求其基类实现grower-interface，这可以是由fish%和person%实现：
+
+(define grower-interface (interface () grow))
+(define (picky-mixin %)
+  (unless (implementation? % grower-interface)
+    (error "picky-mixin: not a grower-interface class"))
+  (class % ....))
+
+另一个使用带混合的接口是标记类通过混合产生，因此，混合实例可以被识别。换句话说，is-a?不能在一个混合上体现为一个函数运行，但它可以识别为一个接口（有点像一个特定的接口），它总是被混合所实现。例如，通过picky-mixin生成的类可以被picky-interface所标记，使是is-picky?去判定:
+
+(define picky-interface (interface ()))
+(define (picky-mixin %)
+  (unless (implementation? % grower-interface)
+    (error "picky-mixin: not a grower-interface class"))
+  (class* % (picky-interface) ....))
+(define (is-picky? o)
+  (is-a? o picky-interface))
