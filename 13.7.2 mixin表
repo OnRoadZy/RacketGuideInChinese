@@ -1,0 +1,39 @@
+13.7.2 mixin表
+
+为执行混合而编纂lambda-plus-class模式，包括对混合的定义域和值域接口的使用，类系统提供了一个mixin宏：
+
+(mixin (interface-expr ...) (interface-expr ...)
+  decl-or-expr ...)
+
+interface-expr的第一个集合确定混合的定义域，第二个集合确定值域。就是说，扩张是一个函数，它测试是否一个给定的基类实现interface-expr的第一个序列，并产生一个类实现interface-expr的第二个序列。其它要求，如在基类继承的方法的存在，然后检查mixin表的class扩展。例如:
+
+> (define choosy-interface (interface () choose?))
+> (define hungry-interface (interface () eat))
+> (define choosy-eater-mixin
+    (mixin (choosy-interface) (hungry-interface)
+      (inherit choose?)
+      (super-new)
+      (define/public (eat x)
+        (cond
+          [(choose? x)
+           (printf "chomp chomp chomp on ~a.\n" x)]
+          [else
+           (printf "I'm not crazy about ~a.\n" x)]))))
+> (define herring-lover%
+    (class* object% (choosy-interface)
+      (super-new)
+      (define/public (choose? x)
+        (regexp-match #px"^herring" x))))
+> (define herring-eater% (choosy-eater-mixin herring-lover%))
+> (define eater (new herring-eater%))
+> (send eater eat "elderberry")
+
+I'm not crazy about elderberry.
+> (send eater eat "herring")
+
+chomp chomp chomp on herring.
+> (send eater eat "herring ice cream")
+
+chomp chomp chomp on herring ice cream.
+
+混合不仅覆盖方法，并引入公共方法，它们也可以扩展方法，引入扩展的方法，添加一个可重写的扩展，并添加一个可扩展的覆盖——所有这些事一个类都能完成（参见《Final, Augment, and Inner》部分）。
