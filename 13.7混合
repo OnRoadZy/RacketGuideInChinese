@@ -1,0 +1,39 @@
+13.7混合
+
+因为类（class）是一种表达表，而不是如同在Smalltalk和java里的一个顶级的声明，一个类表可以嵌套在任何词法范围内，包括lambda（λ）。其结果是一个mixin，即，一个类的扩展，是相对于它的基类的参数化。
+
+例如，我们可以参数化picky-fish%类来覆盖它的基类从而定义picky-mixin：
+
+(define (picky-mixin %)
+  (class % (super-new)
+    (define/override (grow amt) (super grow (* 3/4 amt)))))
+(define picky-fish% (picky-mixin fish%))
+
+Smalltalk风格类和Racket类之间的许多小的差异有助于混合的有效利用。特别是，define/override的使用使得picky-mixin期望一个类带有一个grow方法更明确。如果picky-mixin应用于一个没有grow方法的类，一旦应用picky-mixin则会发出一个错误的信息。
+
+同样，当应用混合时使用继承（inherit）执行“方法实体（method existence）”的要求：
+
+(define (hungry-mixin %)
+  (class % (super-new)
+    (inherit eat)
+    (define/public (eat-more fish1 fish2)
+      (eat fish1)
+      (eat fish2))))
+
+mixin的优势是，我们可以很容易地将它们结合起来以创建新的类，其共享的实现不适合一个继承层次——没有多继承相关的歧义。配备picky-mixin和hungry-mixin，为饥饿（hungry）创造了一个类，但挑剔的鱼（picky fish）是直截了当的：
+
+(define picky-hungry-fish%
+  (hungry-mixin (picky-mixin fish%)))
+
+关键词初始化参数的使用是mixin的易于使用的重点。例如，picky-mixin和hungry-mixin可以通过合适的eat方法和grow方法增加任何类，因为它们在它们的super-new表达式里没有指定初始化参数也没有添加东西：
+
+(define person%
+  (class object%
+    (init name age)
+    ....
+    (define/public (eat food) ....)
+    (define/public (grow amt) ....)))
+(define child% (hungry-mixin (picky-mixin person%)))
+(define oliver (new child% [name "Oliver"] [age 6]))
+
+最后，对类成员的外部名称的使用（而不是词法作用域标识符）使得混合使用很方便。添加picky-mixin到person%运行，因为这个名字eat和grow匹配，在fish%和person%里没有任何eat和grow的优先申明可以是同样的方法。当成员名称意外碰撞后，此特性是一个潜在的缺陷；一些意外冲突可以通过限制外部名称作用域来纠正，就像在《控制外部名称的范围（Controlling the Scope of External Names）》所讨论的那样。
