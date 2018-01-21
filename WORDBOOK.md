@@ -37,7 +37,6 @@
 - caught 捕获
 - wrap 封装
 - shadow 覆盖
-
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
@@ -92,3 +91,5 @@
 - sink 池（比如数据池。感觉翻译成“池”比“槽”更通俗易懂一些）
 - exception 异常
 - superclass 基类（不翻译成父类，因为基类更准确也更专业化，应该更能表达本质意义）
+- mixin 混合
+- trait 特征
