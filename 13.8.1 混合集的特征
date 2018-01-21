@@ -1,0 +1,40 @@
+13.8.1 混合集的特征
+
+在Racket里实现特征的一个自然的方法是如同一组混合，每个特征方法带一个mixin。例如，我们可以尝试如下定义spots和stripes的特征，使用关联列表来表示集合：
+
+(define spots-trait
+  (list (cons 'get-color
+               (lambda (%) (class % (super-new)
+                             (define/public (get-color)
+                               'black))))))
+(define stripes-trait
+  (list (cons 'get-color
+              (lambda (%) (class % (super-new)
+                            (define/public (get-color)
+                              'red))))))
+
+一个集合的表示，如上面所述，允许trait-sum和trait-exclude做为简单操作；不幸的是，它不支持trait-alias运算符。虽然一个混合可以在关联表里复制，混合有一个固定的方法名称，例如，get-color，而且混合不支持方法重命名操作。支持trait-alias，我们必须在扩展方法名上参数化混合，同样地eat在参数化混合（Parameterized Mixins）中进行参数化。
+
+为了支持trait-alias操作，spots-trait应表示为：
+
+(define spots-trait
+  (list (cons (member-name-key get-color)
+              (lambda (get-color-key %)
+                (define-member-name get-color get-color-key)
+                (class % (super-new)
+                  (define/public (get-color) 'black))))))
+
+当spots-trait中的get-color方法是给get-trait-color的别名并且get-color方法被去除，由此产生的特性如下：
+
+(list (cons (member-name-key get-trait-color)
+            (lambda (get-color-key %)
+              (define-member-name get-color get-color-key)
+              (class % (super-new)
+                (define/public (get-color) 'black)))))
+
+应用特征T到一个类C和获得一个派生类，我们用((trait->mixin T) C)。trait->mixin函数用给混合的方法和部分C扩展的键提供每个T的混合：
+
+(define ((trait->mixin T) C)
+  (foldr (lambda (m %) ((cdr m) (car m) %)) C T))
+
+因此，当上述特性与其它特性结合，然后应用到类中时，get-color的使用将成为外部名称get-trait-color的引用。
