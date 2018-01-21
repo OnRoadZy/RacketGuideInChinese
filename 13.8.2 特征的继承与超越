@@ -1,0 +1,13 @@
+13.8.2 特征的继承与超越
+
+特性的这个第一个实现支持trait-alias，它支持一个调用自身的特性方法，但是它不支持调用彼此的特征方法。特别是，假设一个spot-fish的市场价值取决于它的斑点颜色：
+
+(define spots-trait
+  (list (cons (member-name-key get-color) ....)
+        (cons (member-name-key get-price)
+              (lambda (get-price %) ....
+                (class % ....
+                  (define/public (get-price)
+                    .... (get-color) ....))))))
+
+在这种情况下，spots-trait的定义失败，因为get-color是不在get-price混合范围之内。事实上，根据混合命令的应用时的特点是应用于类，得到的颜色的方法可能不可用时得到的价格混合应用于类。因此添加（继承得到的颜色）到价格mixin并不解决问题的宣言。
