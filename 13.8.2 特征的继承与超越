@@ -10,4 +10,28 @@
                   (define/public (get-price)
                     .... (get-color) ....))))))
 
-在这种情况下，spots-trait的定义失败，因为get-color是不在get-price混合范围之内。事实上，根据混合命令的应用时的特点是应用于类，得到的颜色的方法可能不可用时得到的价格混合应用于类。因此添加（继承得到的颜色）到价格mixin并不解决问题的宣言。
+在这种情况下，spots-trait的定义失败，因为get-color是不在get-price混合范围之内。事实上，当特征应用于一个类时依赖于混合程序的顺序，当get-price混合应用于类时get-color方法可能不可获得。因此添加一个(inherit get-color)申明给get-price混合并不解决问题。
+
+一种解决方案是要求在像get-price方法中使用(send this get-color)。这种更改是有效的，因为send总是延迟方法查找，直到对方法的调用被求值。然而，延迟查找比直接调用更为昂贵。更糟糕的是，它也延迟检查get-color方法是否存在。
+
+第二个，实际上，并且有效的解决方案是改变特征编码。具体来说，我们代表每个方法作为一对混合：一个引入方法，另一个实现它。当一个特征应用于一个类，所有的引入方法混合首先被应用。然后实现方法混合可以使用inherit去直接访问任何引入的方法。
+
+(define spots-trait
+  (list (list (local-member-name-key get-color)
+              (lambda (get-color get-price %) ....
+                (class % ....
+                  (define/public (get-color) (void))))
+              (lambda (get-color get-price %) ....
+                (class % ....
+                  (define/override (get-color) 'black))))
+        (list (local-member-name-key get-price)
+              (lambda (get-price get-color %) ....
+                (class % ....
+                  (define/public (get-price) (void))))
+              (lambda (get-color get-price %) ....
+                (class % ....
+                  (inherit get-color)
+                  (define/override (get-price)
+                    .... (get-color) ....))))))
+
+有了这个特性编码， trait-alias添加一个带新名称的新方法，但它不会改变对旧方法的任何引用。
