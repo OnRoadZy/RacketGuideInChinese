@@ -1,0 +1,31 @@
+13.8.3 trait（特征）表
+
+通用特性模式显然对程序员直接使用来说太复杂了，但很容易在trait宏中编译：
+
+(trait trait-clause ...)
+
+在可选项中的ids继承从句在expr方法中直接引用是有效的，并且它们必须提供其它特征或者基础类，其特征被最终应用。
+
+使用这个表结合特征操作符，如trait-sum、trait-exclude、trait-alias和trait->mixin,我们可以实现spots-trait和stripes-trait作为所需。
+
+(define spots-trait
+  (trait
+    (define/public (get-color) 'black)
+    (define/public (get-price) ... (get-color) ...)))
+ 
+(define stripes-trait
+  (trait
+    (define/public (get-color) 'red)))
+ 
+(define spots+stripes-trait
+  (trait-sum
+   (trait-exclude (trait-alias spots-trait
+                               get-color get-spots-color)
+                  get-color)
+   (trait-exclude (trait-alias stripes-trait
+                               get-color get-stripes-color)
+                  get-color)
+   (trait
+     (inherit get-spots-color get-stripes-color)
+     (define/public (get-color)
+       .... (get-spots-color) .... (get-stripes-color) ....))))
