@@ -1,0 +1,178 @@
+13.9.1 外部类合约
+
+在最简单的表中，class/c保护从合约类实例化的对象的公共字段和方法。还有一种object/c表，可用于类似地保护特定对象的公共字段和方法。获取animal%的以下定义，它使用公共字段作为其size属性：
+
+(define animal%
+  (class object%
+    (super-new)
+    (field [size 10])
+    (define/public (eat food)
+      (set! size (+ size (get-field size food))))))
+
+对于任何实例化的animal%，访问size字段应该返回一个正数。另外，如果设置了size字段，则应该分配一个正数。最后，eat方法应该接收一个参数，它是一个包含一个正数的size字段的对象。为了确保这些条件，我们将用适当的合约定义animal%类：
+
+(define positive/c (and/c number? positive?))
+(define edible/c (object/c (field [size positive/c])))
+(define/contract animal%
+  (class/c (field [size positive/c])
+           [eat (->m edible/c void?)])
+  (class object%
+    (super-new)
+    (field [size 10])
+    (define/public (eat food)
+      (set! size (+ size (get-field size food))))))
+
+这里我们使用->m来描述eat的行为，因为我们不需要描述这个this参数的任何要求。既然我们有我们的合约类，就可以看出对size和eat的合约都是强制执行的：
+
+> (define bob (new animal%))
+> (set-field! size bob 3)
+> (get-field size bob)
+3
+
+> (set-field! size bob 'large)
+animal%: contract violation
+
+  expected: positive/c
+
+  given: 'large
+
+  in: the size field in
+
+      (class/c
+
+       (eat
+
+        (->m
+
+         (object/c (field (size positive/c)))
+
+         void?))
+
+       (field (size positive/c)))
+
+  contract from: (definition animal%)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:31.0
+
+> (define richie (new animal%))
+> (send bob eat richie)
+> (get-field size bob)
+13
+
+> (define rock (new object%))
+> (send bob eat rock)
+eat: contract violation;
+
+ no public field size
+
+  in: the 1st argument of
+
+      the eat method in
+
+      (class/c
+
+       (eat
+
+        (->m
+
+         (object/c (field (size positive/c)))
+
+         void?))
+
+       (field (size positive/c)))
+
+  contract from: (definition animal%)
+
+  contract on: animal%
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:31.0
+
+> (define giant (new (class object% (super-new) (field [size 'large]))))
+> (send bob eat giant)
+eat: contract violation
+
+  expected: positive/c
+
+  given: 'large
+
+  in: the size field in
+
+      the 1st argument of
+
+      the eat method in
+
+      (class/c
+
+       (eat
+
+        (->m
+
+         (object/c (field (size positive/c)))
+
+         void?))
+
+       (field (size positive/c)))
+
+  contract from: (definition animal%)
+
+  contract on: animal%
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:31.0
+
+对于外部类合同有两个重要的警告。首先，当动态分派的目标是合约类的方法实施时，只有在合同边界内才实施外部方法合同。重写该实现，从而改变动态分派的目标，将意味着不再为客户机强制执行该合约，因为访问该方法不再越过合约边界。与外部方法合约不同，外部字段合约对于子类的客户机总是强制执行，因为字段不能被覆盖或屏蔽。
+
+第二，这些合约不以任何方式限制animal%的子类。被子类继承和使用的字段和方法不被这些合约检查，并且通过super对基类方法的使用也不检查。下面的示例说明了两个警告：
+
+(define large-animal%
+  (class animal%
+    (super-new)
+    (inherit-field size)
+    (set! size 'large)
+    (define/override (eat food)
+      (display "Nom nom nom") (newline))))
+ 
+
+> (define elephant (new large-animal%))
+> (send elephant eat (new object%))
+Nom nom nom
+
+> (get-field size elephant)
+animal%: broke its own contract
+
+  promised: positive/c
+
+  produced: 'large
+
+  in: the size field in
+
+      (class/c
+
+       (eat
+
+        (->m
+
+         (object/c (field (size positive/c)))
+
+         void?))
+
+       (field (size positive/c)))
+
+  contract from: (definition animal%)
+
+  blaming: (definition animal%)
+
+   (assuming the contract is correct)
+
+  at: eval:31.0
