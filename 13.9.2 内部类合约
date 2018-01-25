@@ -1,0 +1,82 @@
+13.9.2 内部类合约
+
+注意，从elephant对象检索size字段归咎于animal%违反合约。这种归咎是正确的，但对animal%类来说是不公平的，因为我们还没有提供一种保护自己免受子类攻击的方法。为此我们添加内部类合约，它提供指令给子类以指明它们如何访问和重写基类的特征。外部类和内部类合约之间的区别在于是否允许类层次结构中较弱的合约，其不变性可能被子类内部破坏，但应通过实例化的对象强制用于外部使用。
+
+作为可用的保护类型的简单示例，我们提供了一个针对animal%类的示例，它使用所有适用的表：
+
+(class/c (field [size positive/c])
+         (inherit-field [size positive/c])
+         [eat (->m edible/c void?)]
+         (inherit [eat (->m edible/c void?)])
+         (super [eat (->m edible/c void?)])
+         (override [eat (->m edible/c void?)]))
+
+这个类合约不仅确保animal%类的对象像以前一样受到保护，而且确保animal%类的子类只在size字段中存储适当的值，并适当地使用animal%的size实现。这些合约表只影响类层次结构中的使用，并且只影响跨合约边界的方法调用。
+
+这意味着，inherit（继承）只会影响到一个方法的子类使用直到子类重写方法，而override只影响从基类进入方法的子类的重写实现。由于这些仅影响内部使用，所以在使用这些类的对象时，override表不会自动将子类插入到义务（obligations）中。此外，使用override仅是说得通，因此只能用于没有beta样式增强的方法。下面的示例显示了这种差异：
+
+(define/contract sloppy-eater%
+  (class/c [eat (->m edible/c edible/c)])
+  (begin
+    (define/contract glutton%
+      (class/c (override [eat (->m edible/c void?)]))
+      (class animal%
+        (super-new)
+        (inherit eat)
+        (define/public (gulp food-list)
+          (for ([f food-list])
+            (eat f)))))
+    (class glutton%
+      (super-new)
+      (inherit-field size)
+      (define/override (eat f)
+        (let ([food-size (get-field size f)])
+          (set! size (/ food-size 2))
+          (set-field! size f (/ food-size 2))
+          f)))))
+> (define pig (new sloppy-eater%))
+> (define slop1 (new animal%))
+> (define slop2 (new animal%))
+> (define slop3 (new animal%))
+> (send pig eat slop1)
+(object:animal% ...)
+
+> (get-field size slop1)
+5
+
+> (send pig gulp (list slop1 slop2 slop3))
+eat: broke its own contract
+
+  promised: void?
+
+  produced: (object:animal% ...)
+
+  in: the range of
+
+      the eat method in
+
+      (class/c
+
+       (override (eat
+
+                  (->m
+
+                   (object/c
+
+                    (field (size positive/c)))
+
+                   void?))))
+
+  contract from: (definition glutton%)
+
+  contract on: glutton%
+
+  blaming: (definition sloppy-eater%)
+
+   (assuming the contract is correct)
+
+  at: eval:47.0
+
+除了这里的内部类合约表所显示的之外，这里有beta样式可扩展的方法类似的表。inner表描述了这个子类，它被要求从一个给定的方法扩展。augment和augride告诉子类，该给定的方法是一种被增强的方法，并且对子类方法的任何调用将动态分配到基类中相应的实现。这样的调用将根据给定的合约进行检查。这两种表的区别在于augment的使用意味着子类可以增强给定的方法，而augride的使用表示子类必须反而重写当前增强。
+
+这意味着并不是所有的表都可以同时使用。只有override、augment和augride中的一个表可用于一个给定的方法，而如果给定的方法已经完成，这些表没有一个可以使用。此外， 仅在augride或override可以指定时，super可以被指定为一个给定的方法。同样，只有augment或augride可以指定时，inner可以被指定。
