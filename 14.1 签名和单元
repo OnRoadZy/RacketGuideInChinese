@@ -1,0 +1,84 @@
+14.1 签名和单元
+
+单元的接口用签名（signature）来描述。每个签名都使用define-signature定义（通常在模块中）。例如，下面的签名，放在一个“toy-factory-sig.rkt”的文件中，描述了一个组件的导出（export），它实现了一个玩具厂：
+
+"toy-factory-sig.rkt"
+
+#lang racket
+ 
+(define-signature toy-factory^
+  (build-toys  ; (integer? -> (listof toy?))
+   repaint     ; (toy? symbol? -> toy?)
+   toy?        ; (any/c -> boolean?)
+   toy-color)) ; (toy? -> symbol?)
+ 
+(provide toy-factory^)
+
+一个toy-factory^签名的实现是用define-unit来写的，它定义了一个名为toy-factory^的导出从句：
+
+"simple-factory-unit.rkt"
+
+#lang racket
+ 
+(require "toy-factory-sig.rkt")
+ 
+(define-unit simple-factory@
+  (import)
+  (export toy-factory^)
+ 
+  (printf "Factory started.\n")
+ 
+  (define-struct toy (color) #:transparent)
+ 
+  (define (build-toys n)
+    (for/list ([i (in-range n)])
+      (make-toy 'blue)))
+ 
+  (define (repaint t col)
+    (make-toy col)))
+ 
+(provide simple-factory@)
+
+toy-factory^签名也可以被一个单元引用，它需要一个玩具工厂来实施其它某些东西。在这种情况下，toy-factory^将以导入（import）从句命名。例如，玩具店可以从玩具厂买到玩具。（假设为了一个有趣的例子，商店只愿意出售特定颜色的玩具）。
+
+"toy-store-sig.rkt"
+
+#lang racket
+ 
+(define-signature toy-store^
+  (store-color     ; (-> symbol?)
+   stock!          ; (integer? -> void?)
+   get-inventory)) ; (-> (listof toy?))
+ 
+(provide toy-store^)
+"toy-store-unit.rkt"
+
+#lang racket
+ 
+(require "toy-store-sig.rkt"
+         "toy-factory-sig.rkt")
+ 
+(define-unit toy-store@
+  (import toy-factory^)
+  (export toy-store^)
+ 
+  (define inventory null)
+ 
+  (define (store-color) 'green)
+ 
+  (define (maybe-repaint t)
+    (if (eq? (toy-color t) (store-color))
+        t
+        (repaint t (store-color))))
+ 
+  (define (stock! n)
+    (set! inventory
+          (append inventory
+                  (map maybe-repaint
+                       (build-toys n)))))
+ 
+  (define (get-inventory) inventory))
+ 
+(provide toy-store@)
+
+请注意，“toy-store-unit.rkt“输入”toy-factory-sig.rkt”，而不是“simple-factory-unit.rkt”。因此，toy-store@单元只依赖于玩具工厂的规格，而不是具体的实施。
