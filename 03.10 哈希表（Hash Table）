@@ -48,6 +48,15 @@ hash-ref: no value found for key
 > (hash 1 (srcloc "file.rkt" 1 0 1 (+ 4 4)))
 (hash 1 (srcloc "file.rkt" 1 0 1 8))
 
+可变哈希表可以选择性地保留其键，因此只要保留在其它地方的键，每个映射都被保留。
+
+例如：
+> (define ht (make-weak-hasheq))
+> (hash-set! ht (gensym) "can you see me?")
+> (collect-garbage)
+> (hash-count ht)
+0
+
 请注意，即使是弱哈希表，只要对应的键是可访问的，它的值也很强健。当一个值指回到它的键，就造成了一个两难的依赖，以致这个映射永久保持。要打破这个循环，映射一个键到一个暂存值（ephemeron），配对它的键和值（除这个隐配对的哈希表之外）。
 
 例如：
