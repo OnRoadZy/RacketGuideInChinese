@@ -1,0 +1,52 @@
+14.3 链接单元
+
+我们可以借助玩具工厂的合作使我们的玩具店玩具经济性更有效，不需要重新创建。相反，玩具总是使用商店的颜色来制造，而工厂的颜色是通过导入toy-store^来获得的：
+
+"store-specific-factory-unit.rkt"
+
+#lang racket
+ 
+(require "toy-store-sig.rkt"
+         "toy-factory-sig.rkt")
+ 
+(define-unit store-specific-factory@
+  (import toy-store^)
+  (export toy-factory^)
+ 
+  (define-struct toy () #:transparent)
+ 
+  (define (toy-color t) (store-color))
+ 
+  (define (build-toys n)
+    (for/list ([i (in-range n)])
+      (make-toy)))
+ 
+  (define (repaint t col)
+    (error "cannot repaint")))
+ 
+(provide store-specific-factory@)
+
+要调用store-specific-factory@，我们需要toy-store^绑定供及给单元。但是为了通过调用toy-store@来获得toy-store^的绑定，我们需要一个玩具工厂！单元实现是相互依赖的，我们不能在另一个之前调用那一个。
+
+解决方案是将这些单元链接（link）在一起，然后调用组合单元。define-compound-unit/infer表将任意数量的单元链接成一个组合单元。它可以从相连的单元中进行导入和导出，并利用其它链接单元的导出来满足各单元的导入。
+
+> (require "toy-factory-sig.rkt")
+> (require "toy-store-sig.rkt")
+> (require "store-specific-factory-unit.rkt")
+> (define-compound-unit/infer toy-store+factory@
+    (import)
+    (export toy-factory^ toy-store^)
+    (link store-specific-factory@
+          toy-store@))
+
+上边总的结果是一个单元toy-store+factory@，其导出既是toy-factory^也是toy-store^。从每个导入和导出的签名中推断出store-specific-factory@和toy-store@之间的联系。
+
+这个单元没有导入，所以我们可以随时调用它：
+
+> (define-values/invoke-unit/infer toy-store+factory@)
+> (stock! 2)
+> (get-inventory)
+(list (toy) (toy))
+
+> (map toy-color (get-inventory))
+'(green green)
