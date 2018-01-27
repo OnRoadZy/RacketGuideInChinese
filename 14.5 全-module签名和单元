@@ -1,0 +1,36 @@
+14.5 全-module签名和单元
+
+在程序中使用的单元，模块如“toy-factory-sig.rkt”和“simple-factory-unit.rkt”是常见的。racket/signature和racket/unit模块的名称可以作为语言来避免大量的样板模块、签名和单元申明文本。
+
+例如，“toy-factory-sig.rkt”可以写为
+
+#lang racket/signature
+ 
+build-toys  ; (integer? -> (listof toy?))
+repaint     ; (toy? symbol? -> toy?)
+toy?        ; (any/c -> boolean?)
+toy-color   ; (toy? -> symbol?)
+
+签名toy-factory^是自动从模块中提供的，它通过用^从文件名“toy-factory-sig.rkt”置换“-sig.rkt”后缀来推断。
+
+同样，“simple-factory-unit.rkt”模块可以写为
+
+#lang racket/unit
+ 
+(require "toy-factory-sig.rkt")
+ 
+(import)
+(export toy-factory^)
+ 
+(printf "Factory started.\n")
+ 
+(define-struct toy (color) #:transparent)
+ 
+(define (build-toys n)
+  (for/list ([i (in-range n)])
+    (make-toy 'blue)))
+ 
+(define (repaint t col)
+  (make-toy col))
+
+单元simple-factory@是自动从模块中提供，它通过用@从文件名“simple-factory-unit.rkt”置换“-unit.rkt“后缀来推断。
