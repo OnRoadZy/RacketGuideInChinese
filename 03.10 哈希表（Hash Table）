@@ -48,7 +48,7 @@ hash-ref: no value found for key
 > (hash 1 (srcloc "file.rkt" 1 0 1 (+ 4 4)))
 (hash 1 (srcloc "file.rkt" 1 0 1 8))
 
-可变哈希表可以选择性地保留其键，因此只要保留在其它地方的键，每个映射都被保留。
+可变哈希表可以选择性地弱方式（weakly）保留其键，因此只要保留在其它地方的键，每个映射都被保留。
 
 例如：
 > (define ht (make-weak-hasheq))
