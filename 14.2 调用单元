@@ -1,0 +1,30 @@
+14.2 调用单元
+
+simple-factory@单元没有导入，因此可以使用invoke-unit直接调用它：
+
+> (require "simple-factory-unit.rkt")
+> (invoke-unit simple-factory@)
+Factory started.
+
+但是，invoke-unit表并不能使主体定义可用，因此我们不能在这家工厂制造任何玩具。define-values/invoke-unit表将签名的标识符绑定到实现签名的一个单元（要调用的）提供的值：
+
+> (define-values/invoke-unit/infer simple-factory@)
+Factory started.
+
+> (build-toys 3)
+(list (toy 'blue) (toy 'blue) (toy 'blue))
+
+由于simple-factory@导出toy-factory^签名，toy-factory^的每个标识符都是由define-values/invoke-unit/infer表定义的。表名称的/infer部分表明，由声明约束的标识符是从simple-factory@推断出来的。
+
+在定义toy-factory^的标识后，我们还可以调用toy-store@，它导入toy-factory^以产生toy-store^：
+
+> (require "toy-store-unit.rkt")
+> (define-values/invoke-unit/infer toy-store@)
+> (get-inventory)
+'()
+
+> (stock! 2)
+> (get-inventory)
+(list (toy 'green) (toy 'green))
+
+同样，/infer部分define-values/invoke-unit/infer确定toy-store@导入toy-factory^，因此它提供与toy-factory^中的名称匹配的顶级绑定，如导入toy-store@。
