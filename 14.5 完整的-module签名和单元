@@ -1,4 +1,4 @@
-14.5 全-module签名和单元
+14.5 完整的-module签名和单元
 
 在程序中使用的单元，模块如“toy-factory-sig.rkt”和“simple-factory-unit.rkt”是常见的。racket/signature和racket/unit模块的名称可以作为语言来避免大量的样板模块、签名和单元申明文本。
 
