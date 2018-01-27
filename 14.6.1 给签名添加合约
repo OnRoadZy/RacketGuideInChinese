@@ -1,0 +1,92 @@
+14.6.1 给签名添加合约
+
+当合约添加到签名时，实现该签名的所有单元都受到这些合约的保护。toy-factory^签名的以下版本添加了前面说明中写过的合约：
+
+"contracted-toy-factory-sig.rkt"
+
+#lang racket
+ 
+(define-signature contracted-toy-factory^
+  ((contracted
+    [build-toys (-> integer? (listof toy?))]
+    [repaint    (-> toy? symbol? toy?)]
+    [toy?       (-> any/c boolean?)]
+    [toy-color  (-> toy? symbol?)])))
+ 
+(provide contracted-toy-factory^)
+
+现在我们采用以前实现的simple-factory@，并实现toy-factory^的这个版本来代替：
+
+"contracted-simple-factory-unit.rkt"
+
+#lang racket
+ 
+(require "contracted-toy-factory-sig.rkt")
+ 
+(define-unit contracted-simple-factory@
+  (import)
+  (export contracted-toy-factory^)
+ 
+  (printf "Factory started.\n")
+ 
+  (define-struct toy (color) #:transparent)
+ 
+  (define (build-toys n)
+    (for/list ([i (in-range n)])
+      (make-toy 'blue)))
+ 
+  (define (repaint t col)
+    (make-toy col)))
+ 
+(provide contracted-simple-factory@)
+
+和以前一样，我们可以调用我们的新单元并绑定导出，这样我们就可以使用它们。然而这次，滥用导出引起相应的合约错误。
+
+> (require "contracted-simple-factory-unit.rkt")
+> (define-values/invoke-unit/infer contracted-simple-factory@)
+Factory started.
+
+> (build-toys 3)
+(list (toy 'blue) (toy 'blue) (toy 'blue))
+
+> (build-toys #f)
+build-toys: contract violation
+
+  expected: integer?
+
+  given: #f
+
+  in: the 1st argument of
+
+      (-> integer? (listof toy?))
+
+  contract from: 
+
+      (unit contracted-simple-factory@)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:34.0
+
+> (repaint 3 'blue)
+repaint: contract violation
+
+  expected: toy?
+
+  given: 3
+
+  in: the 1st argument of
+
+      (-> toy? symbol? toy?)
+
+  contract from: 
+
+      (unit contracted-simple-factory@)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: eval:34.0
