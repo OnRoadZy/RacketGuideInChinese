@@ -1,0 +1,112 @@
+14.6.2 给单元添加合约
+
+然而，有时我们可能有一个单元，它必须符合一个已经存在的签名而不是符合合约。在这种情况下，我们可以创建一个带unit/c或使用define-unit/contract表的单元合约，它定义了一个已被单元合约包装的单元。
+
+例如，这里有一个toy-factory@的版本，它仍然实现了规则toy-factory^，但它的输出得到了适当的合约的保护。
+
+"wrapped-simple-factory-unit.rkt"
+
+#lang racket
+ 
+(require "toy-factory-sig.rkt")
+ 
+(define-unit/contract wrapped-simple-factory@
+  (import)
+  (export (toy-factory^
+           [build-toys (-> integer? (listof toy?))]
+           [repaint    (-> toy? symbol? toy?)]
+           [toy?       (-> any/c boolean?)]
+           [toy-color  (-> toy? symbol?)]))
+ 
+  (printf "Factory started.\n")
+ 
+  (define-struct toy (color) #:transparent)
+ 
+  (define (build-toys n)
+    (for/list ([i (in-range n)])
+      (make-toy 'blue)))
+ 
+  (define (repaint t col)
+    (make-toy col)))
+ 
+(provide wrapped-simple-factory@)
+> (require "wrapped-simple-factory-unit.rkt")
+> (define-values/invoke-unit/infer wrapped-simple-factory@)
+Factory started.
+
+> (build-toys 3)
+(list (toy 'blue) (toy 'blue) (toy 'blue))
+
+> (build-toys #f)
+wrapped-simple-factory@: contract violation
+
+  expected: integer?
+
+  given: #f
+
+  in: the 1st argument of
+
+      (unit/c
+
+       (import)
+
+       (export (toy-factory^
+
+                (build-toys
+
+                 (-> integer? (listof toy?)))
+
+                (repaint (-> toy? symbol? toy?))
+
+                (toy? (-> any/c boolean?))
+
+                (toy-color (-> toy? symbol?))))
+
+       (init-depend))
+
+  contract from: 
+
+      (unit wrapped-simple-factory@)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: <collects>/racket/unit.rkt
+
+> (repaint 3 'blue)
+wrapped-simple-factory@: contract violation
+
+  expected: toy?
+
+  given: 3
+
+  in: the 1st argument of
+
+      (unit/c
+
+       (import)
+
+       (export (toy-factory^
+
+                (build-toys
+
+                 (-> integer? (listof toy?)))
+
+                (repaint (-> toy? symbol? toy?))
+
+                (toy? (-> any/c boolean?))
+
+                (toy-color (-> toy? symbol?))))
+
+       (init-depend))
+
+  contract from: 
+
+      (unit wrapped-simple-factory@)
+
+  blaming: top-level
+
+   (assuming the contract is correct)
+
+  at: <collects>/racket/unit.rkt
