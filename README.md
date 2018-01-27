@@ -1,6 +1,8 @@
 # RackGuideInChinese
 ## Racket指南（中文翻译）
 
+**罗马不是一天建成的。**
+
 欢迎愿意参与的朋友一起来完成这个项目，给想学习Racket的朋友提供一个学习工具。
 
 [ 英文的原始网页：https://docs.racket-lang.org/guide/index.html ](https://docs.racket-lang.org/guide/index.html)
