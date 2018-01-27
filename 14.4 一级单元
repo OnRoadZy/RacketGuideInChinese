@@ -1,0 +1,83 @@
+14.4 一级单元
+
+ define-unit表将define与unit表相结合，类似于(define (f x) ....)结合define，后跟带隐式lambda的标识符。
+
+扩大简写，toy-store@的定义几乎可以写成
+
+(define toy-store@
+  (unit
+   (import toy-factory^)
+   (export toy-store^)
+ 
+   (define inventory null)
+ 
+   (define (store-color) 'green)
+   ....))
+
+这个扩展和define-unit的区别在于，toy-store@的导入和导出不能被推断出来。也就是说，除了将define和unit结合在一起，define-unit还将静态信息附加到定义的标识符，以便静态地提供它的签名信息来define-values/invoke-unit/infer和其它表。
+
+虽有丢失静态签名信息的缺点，unit可以与使用第一类值的其它表结合使用。例如，我们可以封装一个unit，它在lambda中创建一个玩具商店来提供商店的颜色：
+
+"toy-store-maker.rkt"
+
+#lang racket
+ 
+(require "toy-store-sig.rkt"
+         "toy-factory-sig.rkt")
+ 
+(define toy-store@-maker
+  (lambda (the-color)
+    (unit
+     (import toy-factory^)
+     (export toy-store^)
+ 
+     (define inventory null)
+ 
+     (define (store-color) the-color)
+ 
+     ; the rest is the same as before
+ 
+     (define (maybe-repaint t)
+       (if (eq? (toy-color t) (store-color))
+           t
+           (repaint t (store-color))))
+ 
+     (define (stock! n)
+       (set! inventory
+             (append inventory
+                     (map maybe-repaint
+                          (build-toys n)))))
+ 
+     (define (get-inventory) inventory))))
+ 
+(provide toy-store@-maker)
+
+要调用由toy-store@-maker创建的单元，我们必须使用define-values/invoke-unit，而不是/infer变量：
+
+> (require "simple-factory-unit.rkt")
+> (define-values/invoke-unit/infer simple-factory@)
+Factory started.
+
+> (require "toy-store-maker.rkt")
+> (define-values/invoke-unit (toy-store@-maker 'purple)
+    (import toy-factory^)
+    (export toy-store^))
+> (stock! 2)
+> (get-inventory)
+(list (toy 'purple) (toy 'purple))
+
+在 define-values/invoke-unit表中，(import toy-factory^)行从当前的上下文中获取与toy-factory^中的名称匹配的绑定（我们通过调用simple-factory@创建的名称），并将它们提供于导入toy-store@。(export toy-store^)从句表明toy-store@-maker产生的单元将导出toy-store^，并在调用该单元后定义该签名的名称。
+
+为了把一个单元与toy-store@-maker链接起来，我们可以使用compound-unit表：
+
+> (require "store-specific-factory-unit.rkt")
+> (define toy-store+factory@
+    (compound-unit
+     (import)
+     (export TF TS)
+     (link [((TF : toy-factory^)) store-specific-factory@ TS]
+           [((TS : toy-store^)) toy-store@ TF])))
+
+这个compound-unit表将许多信息聚集到一个地方。link从句中的左侧TF和TS是绑定标识符。标识符TF基本上绑定到toy-factory^的元素作为由store-specific-factory@的实现。标识符TS类似地绑定到toy-store^的元素作为由toy-store@的实现。同时，绑定到TS的元素作为提供给store-specific-factory@的导入，因为TS是随着store-specific-factory@的。绑定到TF的元素也同样提供给toy-store@。最后，(export TF TS)表明绑定到TF和TS的元素从复合单元导出。
+
+上面的compound-unit表使用store-specific-factory@作为一个一级单元，尽管它的信息可以推断。除了在推理上下文中的使用外，每个单元都可以用作一个一级单元。此外，各种表让程序员弥合了推断的和一级的世界之间的间隔。例如，define-unit-binding将一个新的标识符绑定到由任意表达式生成的单元；它静态地将签名信息与标识符相关联，并动态地对表达式产生的一级单元进行签名检查。
