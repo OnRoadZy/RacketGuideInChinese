@@ -37,6 +37,7 @@
 - caught 捕获
 - wrap 封装
 - shadow 覆盖
+- link 链接
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
@@ -93,3 +94,4 @@
 - superclass 基类（不翻译成父类，因为基类更准确也更专业化，应该更能表达本质意义）
 - mixin 混合
 - trait 特征
+- unit 单元
