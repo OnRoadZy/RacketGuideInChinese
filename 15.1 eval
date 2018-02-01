@@ -1,0 +1,32 @@
+15.1 eval
+
+eval函数构成一个表达或定义的表达（如“引用（quoted）”表或句法对象（syntax object））并且对它进行求值：
+
+> (eval '(+ 1 2))
+3
+
+eval函数的表达式可以动态构造：
+
+> (define (eval-formula formula)
+    (eval `(let ([x 2]
+                 [y 3])
+             ,formula)))
+> (eval-formula '(+ x y))
+5
+
+> (eval-formula '(+ (* x y) y))
+9
+
+当然，如果我们只是想计算表达式给出x和y的值，我们不需要eval。更直接的方法是使用一级函数：
+
+> (define (apply-formula formula-proc)
+    (formula-proc 2 3))
+> (apply-formula (lambda (x y) (+ x y)))
+5
+
+> (apply-formula (lambda (x y) (+ (* x y) y)))
+9
+
+然而，譬如，如果表达式样(+ x y)和(+ (* x y) y)是从用户提供的文件中读取，然后eval可能是适当的。同样地，REPL读取表达式，由用户输入，使用eval求值。
+
+一样地，在整个模块中eval往往直接或间接地使用。例如，程序可以在定义域中用dynamic-require读取一个模块，这基本上是一个封装在eval中的动态加载模块的代码。
