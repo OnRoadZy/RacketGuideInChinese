@@ -1,0 +1,28 @@
+15.1.2 命名空间（Namespace）
+
+由于eval不能从它调用的上下文中看到绑定，另一种机制是需要确定动态可获得的绑定。一个命名空间（namespace）是一个一级的值，它封装了用于动态求值的可获得绑定。
+
+一些函数，如eval，接受一个可选的命名空间参数。通常，动态操作所使用的命名空间是current-namespace参数所确定的当前命名空间（current namespace）。
+
+当eval在REPL中使用时，当前命名空间是REPL使用于求值表达式中的一个。这就是为什么下面的互动设计成功通过eval访问X的原因：
+
+> (define x 3)
+> (eval 'x)
+3
+
+相反，尝试以下简单的模块并直接在DrRacket里或提供文件作为命令行参数给racket运行它：
+
+#lang racket
+ 
+(eval '(cons 1 2))
+
+这失败是因为初始当前命名空间是空的。当你在交互模式下运行racket（见《交互模式（Interactive Mode）》）时，初始的命名空间是用racket模块的导出初始化的，但是当你直接运行一个模块时，初始的命名空间开始为空。
+
+在一般情况下，用任何命名空间安装结果来使用eval一个坏主意。相反，明确地创建一个命名空间并安装它以调用eval：
+
+#lang racket
+ 
+(define ns (make-base-namespace))
+(eval '(cons 1 2) ns) ; 运行
+
+ make-base-namespace函数创建一个命名空间，该命名空间是用racket/base导出初始化的。后一部分《操作命名空间（Manipulating Namespaces）》提供了关于创建和配置名称空间的更多信息。
