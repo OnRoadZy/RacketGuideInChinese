@@ -1,0 +1,21 @@
+15.1.1 本地域
+
+eval函数不能看到上下文中被调用的局部绑定。例如，调用在一个非引用的let表中的eval以对一个公式求值不会使得值x和y可见：
+
+> (define (broken-eval-formula formula)
+    (let ([x 2]
+          [y 3])
+      (eval formula)))
+> (broken-eval-formula '(+ x y))
+x: undefined;
+
+ cannot reference undefined identifier
+
+eval函数不能看到X和Y的绑定，正是因为它是一个函数，并且Racket是词法作用域的语言。想象一下如果eval被实现为
+
+(define (eval x)
+  (eval-expanded (macro-expand x)))
+
+那么在eval-expanded被调用的这个点上，X最近的绑定是表达式求值，不是broken-eval-formula中的let绑定。词法范围防止这样的困惑和脆弱的行为，从而防止eval表看到上下文中被调用的局部绑定。
+
+你可以想象，即使在broken-eval-formula不能看到局部绑定，这里实际上必须是一个X到2和Y到3的数据结构映射，以及你想办法得到那些数据结构。事实上，没有这样的数据结构存在；编译器可以自由地在编译时替换带有2的x的每一个使用，因此在运行时的任何具体意义上都不存在x的局部绑定。即使变量不能通过常量折叠消除，通常也可以消除变量的名称，而保存局部值的数据结构与从名称到值的映射不一样。
