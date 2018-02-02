@@ -1,0 +1,23 @@
+15.2.1 创建和安装命名空间
+
+函数make-empty-namespace创建一个新的空命名空间。由于命名空间确实是空的，所以它不能首先用来求值任何顶级表达式——甚至不能求值(require racket)。特别地,
+
+(parameterize ([current-namespace (make-empty-namespace)])
+  (namespace-require 'racket))
+
+失败，因为命名空间不包括建立racket的原始模块。
+
+为了使命名空间有用，必须从现有命名空间中附加（attached）一些模块。附加模块通过从现有的命名空间的映射传递复制条目（模块及它的所有导入）调整模块名称映射到实例。通常情况下，而不是仅仅附加原始模块——其名称和组织有可能发生变化——附加一个高级模块，如racket或racket/base。
+
+make-base-empty-namespace函数提供一个空的命名空间，除非附加了racket/base。生成的命名空间仍然是“空的”，在这个意义上，绑定名称空间部分的标识符没有映射；只有模块映射已经填充。然而，通过初始模块映射，可以加载更多模块。
+
+一个用make-base-empty-namespace创建的命名空间适合于许多基本的动态任务。例如，假设my-dsl库实现了一个特定定义域的语言，你希望在其中执行来自用户指定文件的命令。一个用make-base-empty-namespace的命名空间足以启动：
+
+(define (run-dsl file)
+  (parameterize ([current-namespace (make-base-empty-namespace)])
+    (namespace-require 'my-dsl)
+    (load file)))
+
+注意，current-namespace参数不影响像在parameterize主体中的namespace-require那样的标识符的意义。这些标识符从封闭上下文（可能是一个模块）获得它们的含义。只有对代码具有动态性的表达式，如加载（load）的文件的内容，通过参数化（parameterize）影响。
+
+在上面的例子中，一个微妙的一点是使用(namespace-require 'my-dsl)代替(eval '(require my-dsl))。后者不会运行，因为eval需要对在命名空间中的require获得意义，并且命名空间的标识符映射最初是空的。与此相反，namespace-require函数直接将给定的模块导入当前命名空间。从(namespace-require 'racket/base)将对导入绑定并使后续(eval '(require my-dsl))运行。上面的比较好，不仅仅是因为它更紧凑，还因为它避免引入不属于特定领域语言的绑定。
