@@ -1,0 +1,24 @@
+16.1.1 define-syntax-rule
+
+创建宏的最简单方法是使用define-syntax-rule：
+
+(define-syntax-rule pattern template)
+
+作为一个运行的例子，考虑交换宏（swap macro），它将交换值存储在两个变量中。可以使用define-syntax-rule实现如下：
+
+(define-syntax-rule (swap x y)
+  (let ([tmp x])
+    (set! x y)
+    (set! y tmp)))
+
+define-syntax-rule表绑定一个与单个模式匹配的宏。模式必须总是以一个开放的括号开头，后面跟着一个标识符，这个标识符在这个例子中是交换的。在初始标识符之后，其它标识符是宏模式变量（macro pattern variable），可以匹配宏使用中的任何内容。因此，这个宏匹配这个表（(swap form1 form2)给任何form1和form2。
+
+在define-syntax-rule中的模式之后是摸板（template）。模板用于替代与模式匹配的表，但模板中的模式变量的每个实例都替换为宏使用模式变量匹配的部分。例如，在
+
+(swap first last)
+
+模式变量x匹配first及y匹配last，于是扩展是
+
+(let ([tmp first])
+  (set! first last)
+  (set! last tmp))
