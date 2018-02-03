@@ -1,0 +1,75 @@
+15.3 脚本求值和使用load
+
+从历史上看，Lisp实现没有提供模块系统。相反，大的程序是由基本的脚本REPL来求值一个特定的顺序的程序片段。而REPL脚本是结构化程序和库的好办法，它仍然有时是一个有用的性能。
+
+load函数通过从文件中一个接一个地读取S表达式来运行一个REPL脚本，并把它们传递给eval。如果一个文件"place.rkts"包含以下内容
+
+(define city "Salt Lake City")
+(define state "Utah")
+(printf "~a, ~a\n" city state)
+
+那么，它可以加载进一个REPL：
+
+> (load "place.rkts")
+Salt Lake City, Utah
+
+> city
+"Salt Lake City"
+
+然而，由于load使用eval，像下面的一个模块一般不会运行——基于命名空间中的相同原因描述：
+
+#lang racket
+ 
+(define there "Utopia")
+ 
+(load "here.rkts")
+
+对求值"here.rkts"的上下文的当前命名空间可能是空的；在任何情况下，你不能从"here.rkts"到那里。同时，在“"here.rkt"里的任何定义对模块里的使用不会变得可见；毕竟，load是动态发生，而在模块标识符引用是从词法上解决，因此是静态的。
+
+不像eval，load不接受一个命名空间的参数。为了提供一个用于load的命名空间，设置current-namespace参数。下面的示例求值在"here.rkts"中使用racket/base模块绑定的表达式：
+
+#lang racket
+ 
+(parameterize ([current-namespace (make-base-namespace)])
+  (load "here.rkts"))
+
+您甚至可以使用namespace-anchor->namespace使封闭模块的绑定可用于动态求值。在下面的例子中，当“"here.rkts"被加载时，它既可以指racket，也可以指racket的绑定：
+
+#lang racket
+ 
+(define there "Utopia")
+ 
+(define-namespace-anchor a)
+(parameterize ([current-namespace (namespace-anchor->namespace a)])
+  (load "here.rkts"))
+
+不过，如果"here.rkts"定义任意的标识符，这个定义不能直接（即静态地）在外围模块中引用。
+
+racket/load模块语言不同于racket或racket/base。一个模块使用racket/load对其所有上下文以动态对待，通过模块主体里的每一个表去eval（使用以racket初始化的命名空间）。作为一个结果，eval和load在模块中的使用看到相同的动态命名空间作为直接主体表。例如，如果"here.rkts"包含以下内容
+
+(define here "Morporkia")
+(define (go!) (set! here there))
+
+那么运行
+
+#lang racket/load
+ 
+(define there "Utopia")
+ 
+(load "here.rkts")
+ 
+(go!)
+(printf "~a\n" here)
+
+打印“Utopia”。
+
+使用racket/load的缺点包括减少错误检查、工具支持和性能。例如，用程序
+
+#lang racket/load
+ 
+(define good 5)
+(printf "running\n")
+good
+bad
+
+DrRacket的语法检查（Check Syntax）工具不能告诉第二个good是对第一个的参考，而对bad的非绑定参考仅在运行时报告而不是在语法上拒绝。
