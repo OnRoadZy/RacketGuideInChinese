@@ -1,0 +1,44 @@
+15.2.2 共享数据和代码的命名空间
+
+如果不需要对新命名空间附加的模块，则将重新加载并实例化它们。例如，racket/base不包括racket/class，加载racket/class又将创造一个不同的类数据类型：
+
+> (require racket/class)
+> (class? object%)
+#t
+
+> (class?
+   (parameterize ([current-namespace (make-base-empty-namespace)])
+     (namespace-require 'racket/class) ; loads again
+     (eval 'object%)))
+#f
+
+对于动态加载的代码需要与其上下文共享更多代码和数据的，使用namespace-attach-module函数。 namespace-attach-module的第一个参数是从中提取模块实例的源命名空间；在某些情况下，已知的当前命名空间包含需要共享的模块：
+
+> (require racket/class)
+> (class?
+   (let ([ns (make-base-empty-namespace)])
+     (namespace-attach-module (current-namespace)
+                              'racket/class
+                              ns)
+     (parameterize ([current-namespace ns])
+       (namespace-require 'racket/class) ; uses attached
+       (eval 'object%))))
+#t
+
+然而，在一个模块中，define-namespace-anchor和namespace-anchor->empty-namespace的组合提供了一种更可靠的获取源命名空间的方法：
+
+#lang racket/base
+ 
+(require racket/class)
+ 
+(define-namespace-anchor a)
+ 
+(define (load-plug-in file)
+  (let ([ns (make-base-empty-namespace)])
+    (namespace-attach-module (namespace-anchor->empty-namespace a)
+                             'racket/class
+                              ns)
+    (parameterize ([current-namespace ns])
+      (dynamic-require file 'plug-in%))))
+
+由namespace-attach-module绑定的锚将模块的运行时间与加载模块的命名空间（可能与当前命名空间不同）连接在一起。在上面的示例中，由于封闭模块需要racket/class，由namespace-anchor->empty-namespace生成的名称空间肯定包含了一个racket/class的实例。此外，该实例与一个导入模块的一个相同，因此类数据类型共享。
