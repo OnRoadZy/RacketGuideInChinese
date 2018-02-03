@@ -239,9 +239,9 @@
   15.3 脚本求值和使用load（OK）
 
 16 宏（Macro）（OK）
-  16.1 基于模式的宏（……）
-    16.1.1 define-syntax-rule
-    16.1.2 词法范围
+  16.1 基于模式的宏（OK）
+    16.1.1 define-syntax-rule（OK）
+    16.1.2 词法范围（……）
     16.1.3 define-syntax和syntax-rules
     16.1.4 匹配序列
     16.1.5 标识符宏
