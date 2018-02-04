@@ -1,0 +1,33 @@
+16.1.5 标识符宏
+
+根据我们的宏定义，swap或rotate标识符必须在开括号之后使用，否则会报告语法错误：
+
+> (+ swap 3)
+eval:2:0: swap: bad syntax
+
+  in: swap
+
+标识符宏（identifier macro）是一个模式匹配宏，当它被自己使用时不使用括号。例如，我们可以定义val为一个标识符宏，扩展到(get-val)，所以(+ val 3)将扩展到(+ (get-val) 3)。
+
+> (define-syntax val
+    (lambda (stx)
+      (syntax-case stx ()
+        [val (identifier? (syntax val)) (syntax (get-val))])))
+> (define-values (get-val put-val!)
+    (let ([private-val 0])
+      (values (lambda () private-val)
+              (lambda (v) (set! private-val v)))))
+> val
+0
+
+> (+ val 3)
+3
+
+val宏使用syntax-case，它可以定义更强大的宏，并在《混合模式和表达式：syntax-case（Mixing Patterns and Expressions: syntax-case）》中讲解。现在，知道定义宏是必要的，在lambda中使用了syntax-case，它的模板必须用显式syntax构造函数包装。最后，syntax-case子句可以指定模式后面的附加保护条件。
+
+我们的val宏使用identifier?条件确保在括号中val不能（must not）使用。相反，宏引一个发语法错误：
+
+> (val)
+eval:8:0: val: bad syntax
+
+  in: (val)
