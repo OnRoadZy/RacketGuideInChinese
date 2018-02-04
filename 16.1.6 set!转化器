@@ -1,0 +1,19 @@
+16.1.6 set!转化器
+
+使用上面的val宏，我们仍然必须调用put-val!更改存储值。然而，直接在val上使用set!会更方便。当val用于set!时借助宏，我们用make-set!-transformer创建一个赋值转换器（assignment transformer）。我们还必须声明set!作为syntax-case文本列表中的文字。
+
+> (define-syntax val2
+    (make-set!-transformer
+     (lambda (stx)
+       (syntax-case stx (set!)
+         [val2 (identifier? (syntax val2)) (syntax (get-val))]
+         [(set! val2 e) (syntax (put-val! e))]))))
+> val2
+0
+
+> (+ val2 3)
+3
+
+> (set! val2 10)
+> val2
+10
