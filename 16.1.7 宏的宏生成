@@ -1,0 +1,21 @@
+16.1.7 宏的宏生成
+
+假设我们有许多标识符像Val和val2，我们想重定向给访问器和突变函数像get-val和put-val!。我们希望可以只写：
+
+(define-get/put-id val get-val put-val!)
+
+自然地，我们可以实现define-get/put-id为一个宏：
+
+> (define-syntax-rule (define-get/put-id id get put!)
+    (define-syntax id
+      (make-set!-transformer
+       (lambda (stx)
+         (syntax-case stx (set!)
+           [id (identifier? (syntax id)) (syntax (get))]
+           [(set! id e) (syntax (put! e))])))))
+> (define-get/put-id val3 get-val put-val!)
+> (set! val3 11)
+> val3
+11
+
+define-get/put-id宏就是是一个宏生成宏（macro-generating macro）。
