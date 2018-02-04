@@ -1,0 +1,103 @@
+16.1.8 扩展的例子：函数的参考调用
+
+我们可以使用模式匹配宏将一个表添加到Racket中，以定义参考函数（call-by-reference function）的一阶调用。当通过参考函数本体转变它的正式参数，这个转变应用到变量，它在对函数的调用中作为一个实参提供。
+
+例如，如果define-cbr类似于define，除了定义call-by-reference函数，那么
+
+(define-cbr (f a b)
+  (swap a b))
+ 
+(let ([x 1] [y 2])
+  (f x y)
+  (list x y))
+
+生成(2 1)。
+
+我们会通过有函数调用支持的对参数的访问器和转换器执行参考函数，而不是直接提供参数值。特别是，对于上面的函数f，我们将生成
+
+(define (do-f get-a get-b put-a! put-b!)
+  (define-get/put-id a get-a put-a!)
+  (define-get/put-id b get-b put-b!)
+  (swap a b))
+
+并将函数调用(f x y)重定向到
+
+(do-f (lambda () x)
+      (lambda () y)
+      (lambda (v) (set! x v))
+      (lambda (v) (set! y v)))
+
+显然，然后define-cbr是宏生成宏，绑定f到一个宏，它扩展到do-f的一个调用。即(define-cbr (f a b) (swap a b))需要生成的定义
+
+(define-syntax f
+  (syntax-rules ()
+    [(id actual ...)
+     (do-f (lambda () actual)
+           ...
+           (lambda (v)
+             (set! actual v))
+           ...)]))
+
+同时，define-cbr需要使用f本体去定义do-f，第二部分是略微更复杂些，所以我们延迟它的大部分给一个define-for-cbr辅助模块，它可以让我们足够简单地编写define-cbr：
+
+(define-syntax-rule (define-cbr (id arg ...) body)
+  (begin
+    (define-syntax id
+      (syntax-rules ()
+        [(id actual (... ...))
+         (do-f (lambda () actual)
+               (... ...)
+               (lambda (v)
+                 (set! actual v))
+               (... ...))]))
+    (define-for-cbr do-f (arg ...)
+      () ; explained below...
+      body)))
+
+我们剩下的任务是定义Cdefine-for-cbr以便它转换
+
+(define-for-cbr do-f (a b) () (swap a b))
+
+到上边的这个函数定义do-f两个功能定义。大部分的工作是生成一个define-get/put-id声明给每个参数，a和b，以及把他们放在本体之前。通常，对于在模式和模板中的...那是很容易的任务，但这次这里有一个捕获：我们需要既生成这个名字get-a和put-a!也要生成get-b和put-b!，这个模式语言没有办法提供基于现有标识符的综合标识符。
+
+事实证明，词法范围给了我们解决这个问题的方法。诀窍是为函数中的每个参数迭代一次对define-for-cbr的扩展，这就是为什么define-for-cbr开始用一个在参数列表后面明显无效的()的原因。除了要处理的参数外，我们还需要跟踪迄今为止所看到的所有参数以及为每个生成的get和put名称。在处理完所有的标识符之后，我们就拥有了所有需要的名称。
+
+这里是Cdefine-for-cbr的定义：
+
+(define-syntax define-for-cbr
+  (syntax-rules ()
+    [(define-for-cbr do-f (id0 id ...)
+       (gens ...) body)
+     (define-for-cbr do-f (id ...)
+       (gens ... (id0 get put)) body)]
+    [(define-for-cbr do-f ()
+       ((id get put) ...) body)
+     (define (do-f get ... put ...)
+       (define-get/put-id id get put) ...
+       body)]))
+
+一步一步，展开如下：
+
+(define-for-cbr do-f (a b)
+  () (swap a b))
+=> (define-for-cbr do-f (b)
+     ([a get_1 put_1]) (swap a b))
+=> (define-for-cbr do-f ()
+     ([a get_1 put_1] [b get_2 put_2]) (swap a b))
+=> (define (do-f get_1 get_2 put_1 put_2)
+     (define-get/put-id a get_1 put_1)
+     (define-get/put-id b get_2 put_2)
+     (swap a b))
+
+“下标（subscript）”get_1、get_2、put_1和put_2通过宏扩展插入到保留词法范围，因为get被define-for-cbr的每一次迭代生成不应捆绑被不同的迭代生成的get。换句话说，我们本质上欺骗这个宏扩展以生成的我们新的名字，但技术显示了一些与自动词法范围的宏模式的神奇力量。
+
+最后表达式最终扩展成
+
+(define (do-f get_1 get_2 put_1 put_2)
+  (let ([tmp (get_1)])
+    (put_1 (get_2))
+    (put_2 tmp)))
+
+它实现了call-by-name函数f。
+
+接下来，总结一下，我们可以只用三个基于模式的宏添加参考函数到Racket中：define-cbr、define-for-cbr和define-get/put-id。
