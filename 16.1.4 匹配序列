@@ -1,0 +1,30 @@
+16.1.4 匹配序列
+
+一个更好的rotate宏将允许任意数量的标识符，而不是只有两个或三个标识符。匹配任何数量的标识符的rotate使用，我们需要一个模式表，它有点像克林闭包（Kleene star）。在一个Racket宏模式中，一个闭包（star）被写成...。
+
+为了用...实现rotate，我们需要一个基元（base case）来处理单个标识符，以及一个归纳案例以处理多个标识符：
+
+(define-syntax rotate
+  (syntax-rules ()
+    [(rotate a) (void)]
+    [(rotate a b c ...) (begin
+                          (swap a b)
+                          (rotate b c ...))]))
+
+当在一种模式中像c这样的模式变量被…跟着的时候，它在模板中必须也被…跟着。模式变量有效地匹配一个零序列或多个表，并在模板中以相同的顺序被替换。
+
+到目前为止，rotate的两种版本都有点效率低下，因为成对交换总是将第一个变量的值移动到序列中的每个变量，直到达到最后一个变量为止。更有效的rotate将第一个值直接移动到最后一个变量。我们可以用...模式使用辅助宏去实现更有效的变体：
+
+(define-syntax rotate
+  (syntax-rules ()
+    [(rotate a c ...)
+     (shift-to (c ... a) (a c ...))]))
+ 
+(define-syntax shift-to
+  (syntax-rules ()
+    [(shift-to (from0 from ...) (to0 to ...))
+     (let ([tmp from0])
+       (set! to from) ...
+       (set! to0 tmp))]))
+
+在shift-to宏里，在模板里的...后面跟着(set! to from)，它导致(set! to from)表达式在in和from序列中与必须使用的每个标识符匹配被复制一样多次。（to和from匹配的数量必须相同，否则宏扩展就会有一个错误的失败。）
