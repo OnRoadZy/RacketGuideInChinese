@@ -1,0 +1,48 @@
+16.1.2 词法范围
+
+假设我们使用swap宏来交换名为tmp和other的变量：
+
+(let ([tmp 5]
+      [other 6])
+  (swap tmp other)
+  (list tmp other))
+
+上述表达式的结果应为（6 5）。然而，这种swap的使用的单纯扩展是
+
+(let ([tmp 5]
+      [other 6])
+  (let ([tmp tmp])
+    (set! tmp other)
+    (set! other tmp))
+  (list tmp other))
+
+其结果是（5 6）。问题在于，这个单纯的扩展混淆了上下文中的tmp，那里swap与宏摸板中的tmp被使用。
+
+Racket不会为了swap的上述使用生成单纯的扩展。相反，它会生成以下内容
+
+(let ([tmp 5]
+      [other 6])
+  (let ([tmp_1 tmp])
+    (set! tmp other)
+    (set! other tmp_1))
+  (list tmp other))
+
+正确的结果在（6 5）。同样，在示例中
+
+(let ([set! 5]
+      [other 6])
+  (swap set! other)
+  (list set! other))
+
+其扩展是
+
+(let ([set!_1 5]
+      [other 6])
+  (let ([tmp_1 set!_1])
+    (set! set!_1 other)
+    (set! other tmp_1))
+  (list set!_1 other))
+
+因此局部set!绑定不会干扰宏模板引入的赋值。
+
+换句话说，Racket的基于模式的宏自动维护词法范围，所以宏的实现者可以思考宏中的变量引用以及在同样的途径中作为函数和函数调用的宏使用。
