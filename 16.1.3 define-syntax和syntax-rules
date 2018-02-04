@@ -1,0 +1,26 @@
+16.1.3 define-syntax和syntax-rules
+
+define-syntax-rule表绑定一个与单一模式匹配的宏，但Racket的宏系统支持从同一标识符开始匹配多个模式的转换器。要编写这样的宏，程序员必须使用更通用的define-syntax表以及syntax-rules转换器表：
+
+(define-syntax id
+  (syntax-rules (literal-id ...)
+    [pattern template]
+    ...))
+
+例如，假设我们希望一个rotate宏将swap概括为两个或三个标识符，因此
+
+(let ([red 1] [green 2] [blue 3])
+  (rotate red green)      ; swaps
+  (rotate red green blue) ; rotates left
+  (list red green blue))
+
+生成(1 3 2)。我们可以使用syntax-rules实现rotate：
+
+(define-syntax rotate
+  (syntax-rules ()
+    [(rotate a b) (swap a b)]
+    [(rotate a b c) (begin
+                     (swap a b)
+                     (swap b c))]))
+
+表达式(rotate red green)与syntax-rules表中的第一个模式相匹配，因此扩展到(swap red green)。表达式(rotate red green blue) 与第二个模式匹配，所以它扩展到(begin (swap red green) (swap green blue))。
