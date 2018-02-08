@@ -1,0 +1,37 @@
+16.2.4 with-syntax和generate-temporaries
+
+由于syntax-case允许我们用任意的Racket表达式进行计算，我们可以更简单地解决我们在编写define-for-cbr（参见《扩展示例：引用函数调用》（Extended Example: Call-by-Reference Functions））中的一个问题，在这里我们需要根据序列ID...生成一组名称：
+
+(define-syntax (define-for-cbr stx)
+  (syntax-case stx ()
+    [(_ do-f (id ...) body)
+     ....
+       #'(define (do-f get ... put ...)
+           (define-get/put-id id get put) ...
+           body) ....]))
+
+代替上面的....，我们需要绑定get ...和put ...到生成标识符的列表。我们不能使用let绑定get和put，因为我们需要绑定那个计数作为模式变量，而不是普通的局部变量。with-syntax表允许我们绑定模式变量：
+
+(define-syntax (define-for-cbr stx)
+  (syntax-case stx ()
+    [(_ do-f (id ...) body)
+     (with-syntax ([(get ...) ....]
+                   [(put ...) ....])
+       #'(define (do-f get ... put ...)
+           (define-get/put-id id get put) ...
+           body))]))
+
+现在我们需要一个表达代替....，它生成与在原始模式中匹配id一样多的标识符。由于这是一个常见的任务，Racket提供了一个辅助函数，generate-temporaries，以一系列的标识符并返回一个序列生成的标识符：
+
+(define-syntax (define-for-cbr stx)
+  (syntax-case stx ()
+    [(_ do-f (id ...) body)
+     (with-syntax ([(get ...) (generate-temporaries #'(id ...))]
+                   [(put ...) (generate-temporaries #'(id ...))])
+       #'(define (do-f get ... put ...)
+           (define-get/put-id id get put) ...
+           body))]))
+
+这种方式产生的标识符通常比欺骗宏扩展产生的纯粹基于模式的宏的名字更容易理解。
+
+一般来说，一个with-syntax绑定左边是一个模式，就像在syntax-case中一样。事实上，一个with-syntax表只是一个syntax-case的部分转换。
