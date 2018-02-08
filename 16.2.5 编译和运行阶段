@@ -1,0 +1,195 @@
+16.2.5 编译和运行阶段
+
+随着宏集合越来越多复杂，你可能要写你自己的辅助函数，如generate-temporaries。例如，提供良好的语法错误信息，swap、rotate和define-cbr都应该检查在源表中的某一个子表是标识符。我们可以使用check-ids函数在任何地方执行此检查：
+
+(define-syntax (swap stx)
+  (syntax-case stx ()
+    [(swap x y) (begin
+                  (check-ids stx #'(x y))
+                  #'(let ([tmp x])
+                      (set! x y)
+                      (set! y tmp)))]))
+ 
+(define-syntax (rotate stx)
+  (syntax-case stx ()
+    [(rotate a c ...)
+     (begin
+       (check-ids stx #'(a c ...))
+       #'(shift-to (c ... a) (a c ...)))]))
+
+check-ids函数可以使用syntax->list函数将一个语法对象转换成一个语法对象列表：
+
+(define (check-ids stx forms)
+  (for-each
+   (lambda (form)
+     (unless (identifier? form)
+       (raise-syntax-error #f
+                           "not an identifier"
+                           stx
+                           form)))
+   (syntax->list forms)))
+
+然而，如果以这种方式定义swap和check-ids，则它不会运行：
+
+> (let ([a 1] [b 2]) (swap a b))
+check-ids: undefined;
+
+ cannot reference undefined identifier
+
+问题是check-ids被定义为一个运行时表达式，但是swap试图在编译时使用它。在交互模式中，编译时和运行时是交错的，但它们不是在模块的主体内交错的，它们不在预编译的模块之间进行交叉。为了帮助所有这些模式一致地对待代码，Racket将不同阶段的绑定空间分隔开来。
+
+要定义可在编译时引用的check-ids函数，使用begin-for-syntax：
+
+(begin-for-syntax
+  (define (check-ids stx forms)
+    (for-each
+     (lambda (form)
+       (unless (identifier? form)
+         (raise-syntax-error #f
+                             "not an identifier"
+                             stx
+                             form)))
+     (syntax->list forms))))
+
+使用此语法定义，那么swap就会运行：
+
+> (let ([a 1] [b 2]) (swap a b) (list a b))
+'(2 1)
+
+> (swap a 1)
+eval:13:0: swap: not an identifier
+
+  at: 1
+
+  in: (swap a 1)
+
+当将程序组织成模块时，你也许希望将辅助函数放在一个模块中，以供驻留在其它模块上的宏使用。在这种情况下，你可以使用define编写辅助函数：
+
+"utils.rkt"
+
+#lang racket
+ 
+(provide check-ids)
+ 
+(define (check-ids stx forms)
+  (for-each
+   (lambda (form)
+     (unless (identifier? form)
+       (raise-syntax-error #f
+                           "not an identifier"
+                           stx
+                           form)))
+   (syntax->list forms)))
+
+然后，在实现宏模块中，使用(require (for-syntax "utils.rkt"))代替(require "utils.rkt")导入辅助函数：
+
+#lang racket
+ 
+(require (for-syntax "utils.rkt"))
+ 
+(define-syntax (swap stx)
+  (syntax-case stx ()
+    [(swap x y) (begin
+                  (check-ids stx #'(x y))
+                  #'(let ([tmp x])
+                      (set! x y)
+                      (set! y tmp)))]))
+
+因为模块分别编译并没有循环依赖，"utils.rkt"模块的run-time本体可以在编译的模块实现swap编译。因此，在"utils.rkt"可以用来实现swap，只要他们通过(require (for-syntax ....))明确转移到编译时间。
+
+racket模块提供了syntax-case、generate-temporaries、lambda、if以及更多以用在运行时阶段和编译时阶段。这就是为什么我们既可以直接在racket的REPL中也可以在一个define-syntax表的右端使用syntax-case的原因。
+
+与此相反，racket/base模块只在运行时阶段导出这些绑定。如果你改变上面定义swap的模块，使它使用racket/base语言，而不是racket，那么它不再运行。添加(require (for-syntax racket/base))导入syntax-case和更多进入编译时阶段，使模块再次工作。
+
+假设define-syntax用于在define-syntax表的右端定义一个局部宏。在这种情况下，内部define-syntax的右端位于元编译阶段级（meta-compile phase level），也称为阶段级2（phase level 2）。要将syntax-case导入到该阶段级别，你必须使用(require (for-syntax (for-syntax racket/base)))，或者等效地使用(require (for-meta 2 racket/base))。例如,
+
+#lang racket/base
+(require  ;; 这提供了shell游戏定义的绑定。
+          (for-syntax racket/base)
+ 
+          ;; 这对互换的定义。
+          (for-syntax (for-syntax racket/base)))
+ 
+(define-syntax (shell-game stx)
+ 
+  (define-syntax (swap stx)
+    (syntax-case stx ()
+      [(_ a b)
+       #'(let ([tmp a])
+           (set! a b)
+           (set! b tmp))]))
+ 
+  (syntax-case stx ()
+    [(_ a b c)
+     (let ([a #'a] [b #'b] [c #'c])
+       (when (= 0 (random 2)) (swap a b))
+       (when (= 0 (random 2)) (swap b c))
+       (when (= 0 (random 2)) (swap a c))
+       #`(list #,a #,b #,c))]))
+ 
+(shell-game 3 4 5)
+(shell-game 3 4 5)
+(shell-game 3 4 5)
+
+反向阶段级也存在。如果一个宏使用了一个导入for-syntax的辅助函数，如果辅助函数返回由syntax生成的语法对象常量，那么语法中的标识符将需要在阶段级-1（phase level -1），也称为模板阶段级（template phase level），以便在运行时阶段级相对于定义宏的模块有任何绑定。
+
+例如，在下面的例子中没有语法变换器的swap-stx的辅助函数——它只是一个普通的函数——但它产生的语法对象得到拼接成shell-game的结果。因此，其包含的辅助模块需要在shell-game阶段1用(require (for-syntax 'helper))导入。
+
+但从swap-stx的角度，当被shell-game返回的语法求值时，其结果最终在阶段1求值。换句话说，一个负向阶段级是一个从正方向来看的相反的方阶段级：shell-game的阶段1是swap-stx的阶段0，所以shell-game的阶段0是swap-stx的阶段-1。这就是为什么这个例子不运行——'helper子模块在阶段-1没有绑定。
+
+#lang racket/base
+(require (for-syntax racket/base))
+ 
+(module helper racket/base
+  (provide swap-stx)
+  (define (swap-stx a-stx b-stx)
+    #`(let ([tmp #,a-stx])
+          (set! #,a-stx #,b-stx)
+          (set! #,b-stx tmp))))
+ 
+(require (for-syntax 'helper))
+ 
+(define-syntax (shell-game stx)
+  (syntax-case stx ()
+    [(_ a b c)
+     #`(begin
+         #,(swap-stx #'a #'b)
+         #,(swap-stx #'b #'c)
+         #,(swap-stx #'a #'c)
+         (list a b c))]))
+ 
+(define x 3)
+(define y 4)
+(define z 5)
+(shell-game x y z)
+
+修复这个例子，我们添加(require (for-template racket/base))到'helper子模块。
+
+#lang racket/base
+(require (for-syntax racket/base))
+ 
+(module helper racket/base
+  (require (for-template racket/base)) ; 在阶段-1绑定“let”和“set!”
+  (provide swap-stx)
+  (define (swap-stx a-stx b-stx)
+    #`(let ([tmp #,a-stx])
+          (set! #,a-stx #,b-stx)
+          (set! #,b-stx tmp))))
+ 
+(require (for-syntax 'helper))
+ 
+(define-syntax (shell-game stx)
+  (syntax-case stx ()
+    [(_ a b c)
+     #`(begin
+         #,(swap-stx #'a #'b)
+         #,(swap-stx #'b #'c)
+         #,(swap-stx #'a #'c)
+         (list a b c))]))
+ 
+(define x 3)
+(define y 4)
+(define z 5)
+(shell-game x y z)
+(shell-game x y z)
+(shell-game x y z)
