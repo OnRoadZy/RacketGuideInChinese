@@ -1,0 +1,60 @@
+16.2.6.1 阶段和绑定
+
+一个标识符的每个绑定都存在于特定的阶段中。一个绑定和它的阶段之间的链接用整数阶段等级（phase level）表示。阶段等级0是用于“扁平”（或“运行时”）定义的阶段，因此
+
+(define age 5)
+
+为age添加绑定到阶段等级0中。标识符age可以在较高的阶段等级上用begin-for-syntax定义：
+
+(begin-for-syntax
+  (define age 5))
+
+对一个单一的begin-for-syntax包装器，age被定义在阶段等级1。我们可以容易地在同一个模块或顶级命名空间中混合这两个定义，并且在不同的阶段等级上定义的两个age之间没有冲突：
+
+> (define age 3)
+> (begin-for-syntax
+    (define age 9))
+
+在阶段等级0的age绑定有一个值为3，在阶段等级1的age绑定有一个值为9。
+
+语法对象将绑定信息捕获为一级值。因此，
+
+#'age
+
+是一个表示age绑定的语法对象，但因为有两个age（一个在阶段等级0，一个在阶段等级1），哪一个是它捕获的？事实上，Racket用给所有阶段等级的词汇信息充满#'age，所以答案是#'age捕捉两者。
+
+当#'age被最终使用时，被#'age捕获的age的相关的绑定被决定。作为一个例子，我们将#'age绑定到模式变量，所以我们可以在一个模板里使用它，并对模板求值eval：
+
+> (eval (with-syntax ([age #'age])
+          #'(displayln age)))
+3
+
+结果是3，因为age在第0阶段等级使用。我们可以在begin-for-syntax内再试一次age的使用：
+
+> (eval (with-syntax ([age #'age])
+          #'(begin-for-syntax
+              (displayln age))))
+9
+
+在这种情况下，答案是9，因为我们使用的age是阶段等级1而不是0（即， begin-for-syntax在阶段等级1求值表达式）。所以，你可以看到，我们用相同的语法对象开始，#'age，并且我们能够使用这两种不同的方法：在阶段等级0和在阶段等级1。
+
+语法对象有一个词法上下文，从它第一次存在的时刻起。从模块中提供的语法对象保留其词法上下文，因此它引用源模块上下文中的绑定，而不是其使用上下文中的。下面的示例在第0阶段等级定义了button，并将其绑定到0，同时see-button为在模块a中的button绑定语法对象：
+
+> (module a racket
+    (define button 0)
+    (provide (for-syntax see-button))
+    ; 为什么不是(define see-button #'button)？我们
+  后边解释。
+  (define-for-syntax see-button #'button))
+> (module b racket
+    (require 'a)
+    (define button 8)
+    (define-syntax (m stx)
+      see-button)
+    (m))
+> (require 'b)
+0
+
+在m宏的结果是see-button的值，它是带有模块a的词汇上下文的#'button。即使是在b中的另一个button，第二个button不会混淆Racket，因为#'button（这个值对see-button予以约束）的词汇上下文是a.
+
+注意，see-button是被用define-for-syntax定义它的长处约束在第1阶段等级。由于m是一个宏，所以需要第1阶段等级，所以它的本体在高于它的定义上下文的一个阶段执行。由于m是在第0阶段等级定义的，所以它的本体处于阶段等级1，所以由本体引用的任何绑定都必须在阶段等级1上。
