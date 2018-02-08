@@ -1,0 +1,45 @@
+16.2.3 混合模式和表达式：syntax-case
+
+通过syntax-rules生成的程序在内部使用syntax-e解构了语法对象，并使用datum->syntax以构造结果。syntax-rules表没有提供一种方法从模式匹配和模板构建模式中跳转到任意的Racket表达式中。
+
+syntax-case表允许混合模式匹配、模板构造和任意表达式：
+
+(syntax-case stx-expr (literal-id ...)
+  [pattern expr]
+  ...)
+
+与syntax-rules不同，syntax-case表不产生过程。相反，它从一个stx-expr表达式决定的语法对象来匹配pattern。另外，每个syntax-case有一个pattern和一个expr，而不是一个pattern和template。在一个expr里，syntax表——通常用#'缩写——进入模板构造方式；如果一个从句的expr以#'开始，那么我们就会获得一些像syntax-rules的表：
+
+> (syntax->datum
+   (syntax-case #'(+ 1 2) ()
+    [(op n1 n2) #'(- n1 n2)]))
+'(- 1 2)
+
+我们可以使用syntax-case来编写swap宏，以代替define-syntax-rule或syntax-rules：
+
+(define-syntax (swap stx)
+  (syntax-case stx ()
+    [(swap x y) #'(let ([tmp x])
+                    (set! x y)
+                    (set! y tmp))]))
+
+使用syntax-case的一个优点是，我们可以为swap提供更好的错误报告。例如，使用swap的define-syntax-rule定义，然后(swap x 2)在set!条件中产生语法错误！，因为2不是一个标识符。我们可以改进swap的syntax-case实现来显式检查子表：
+
+(define-syntax (swap stx)
+  (syntax-case stx ()
+    [(swap x y)
+     (if (and (identifier? #'x)
+              (identifier? #'y))
+         #'(let ([tmp x])
+             (set! x y)
+             (set! y tmp))
+         (raise-syntax-error #f
+                             "not an identifier"
+                             stx
+                             (if (identifier? #'x)
+                                 #'y
+                                 #'x)))]))
+
+通过这个定义，(swap x 2)提供了一个源自swap而不是set!的语法错误。
+
+在互换上述swap的定义里，#'x和#'y是模板，即使它们不是作为宏转换器的结果。这个例子说明了如何使用模板来访问输入语法的片段，在这种情况下可以检查碎片的表。同时，在对raise-syntax-error的调用中对#'x或#'y的匹配被使用，所以语法错误信息可以直接指到非标识符的源位置。
