@@ -101,7 +101,7 @@ racket模块提供了syntax-case、generate-temporaries、lambda、if以及更�
 
 与此相反，racket/base模块只在运行时阶段导出这些绑定。如果你改变上面定义swap的模块，使它使用racket/base语言，而不是racket，那么它不再运行。添加(require (for-syntax racket/base))导入syntax-case和更多进入编译时阶段，使模块再次工作。
 
-假设define-syntax用于在define-syntax表的右端定义一个局部宏。在这种情况下，内部define-syntax的右端位于元编译阶段级（meta-compile phase level），也称为阶段级2（phase level 2）。要将syntax-case导入到该阶段级别，你必须使用(require (for-syntax (for-syntax racket/base)))，或者等效地使用(require (for-meta 2 racket/base))。例如,
+假设define-syntax用于在define-syntax表的右端定义一个局部宏。在这种情况下，内部define-syntax的右端位于元编译阶段等级（meta-compile phase level），也称为阶段等级2（phase level 2）。要将syntax-case导入到该阶段等级，你必须使用(require (for-syntax (for-syntax racket/base)))，或者等效地使用(require (for-meta 2 racket/base))。例如,
 
 #lang racket/base
 (require  ;; 这提供了shell游戏定义的绑定。
@@ -131,11 +131,11 @@ racket模块提供了syntax-case、generate-temporaries、lambda、if以及更�
 (shell-game 3 4 5)
 (shell-game 3 4 5)
 
-反向阶段级也存在。如果一个宏使用了一个导入for-syntax的辅助函数，如果辅助函数返回由syntax生成的语法对象常量，那么语法中的标识符将需要在阶段级-1（phase level -1），也称为模板阶段级（template phase level），以便在运行时阶段级相对于定义宏的模块有任何绑定。
+反向阶段等级也存在。如果一个宏使用了一个导入for-syntax的辅助函数，如果辅助函数返回由syntax生成的语法对象常量，那么语法中的标识符将需要在阶段等级-1（phase level -1），也称为模板阶段等级（template phase level），以便在运行时阶段等级相对于定义宏的模块有任何绑定。
 
 例如，在下面的例子中没有语法变换器的swap-stx的辅助函数——它只是一个普通的函数——但它产生的语法对象得到拼接成shell-game的结果。因此，其包含的辅助模块需要在shell-game阶段1用(require (for-syntax 'helper))导入。
 
-但从swap-stx的角度，当被shell-game返回的语法求值时，其结果最终在阶段1求值。换句话说，一个负向阶段级是一个从正方向来看的相反的方阶段级：shell-game的阶段1是swap-stx的阶段0，所以shell-game的阶段0是swap-stx的阶段-1。这就是为什么这个例子不运行——'helper子模块在阶段-1没有绑定。
+但从swap-stx的角度，当被shell-game返回的语法求值时，其结果最终在阶段1求值。换句话说，一个负向阶段等级是一个从正方向来看的相反的方阶段等级：shell-game的阶段1是swap-stx的阶段0，所以shell-game的阶段0是swap-stx的阶段-1。这就是为什么这个例子不运行——'helper子模块在阶段-1没有绑定。
 
 #lang racket/base
 (require (for-syntax racket/base))
