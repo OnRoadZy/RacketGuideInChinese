@@ -38,6 +38,8 @@
 - wrap 封装
 - shadow 覆盖
 - link 链接
+- bound 约束
+
 ## 内置数据名称
 - boolean 布尔值
 - number 数值
