@@ -1,0 +1,66 @@
+16.2.6.2 阶段和模块
+
+阶段等级（phase level）是一个模块相关概念。当通过require从另一个模块导入时，Racket允许我们将导入的绑定转移到与原来的绑定不同的阶段等级：
+
+(require "a.rkt")                ; 不带阶段转移的导入
+(require (for-syntax "a.rkt"))   ; 通过+1转移阶段
+(require (for-template "a.rkt")) ; 通过-1转移阶段
+(require (for-meta 5 "a.rkt"))   ; 通过+5转移阶段
+
+也就是说，在require中使用for-syntax意味着该模块的所有绑定都会增加它们的阶段等级。在第0阶段等级定义并用for-syntax导入的绑定成为一个阶段等级1的绑定：
+
+> (module c racket
+    (define x 0) ; defined at phase level 0
+    (provide x))
+> (module d racket
+    (require (for-syntax 'c))
+    ; has a binding at phase level 1, not 0:
+    #'x)
+
+让我们看看如果我们试图在阶段等级0创建一个给#'button绑定的语法对象发生了什么：
+
+> (define button 0)
+> (define see-button #'button)
+
+现在button和see-button在第0阶段等级中定义。对#'button的词汇上下文会知道在阶段等级0有一个为button的绑定。事实上，好像如果我们试图对see-button进行eval，一切都很好地运行：
+
+> (eval see-button)
+0
+
+现在，让我们在一个宏中使用see-button：
+
+> (define-syntax (m stx)
+    see-button)
+> (m)
+see-button: undefined;
+
+ cannot reference undefined identifier
+
+显然，see-button没有在阶段1级被定义，所以我们不能在宏本体内引用它。让我们在另一个模块中使用see-button，通过将button定义放到一个模块中并在第1阶段等级导入它。那么，我们在第1阶段等级得到了see-button：
+
+> (module a racket
+    (define button 0)
+    (define see-button #'button)
+    (provide see-button))
+> (module b racket
+    (require (for-syntax 'a)) ; gets see-button at phase level 1
+    (define-syntax (m stx)
+      see-button)
+    (m))
+eval:1:0: button: unbound identifier;
+
+ also, no #%top syntax transformer is bound
+
+  in: button
+
+Racket说button现在不受约束！当a在阶段等级1被导入，我们有了以下的绑定：
+
+button     at phase level 1
+see-button at phase level 1
+
+所以宏m能够看到一个在阶段等级1为see-button的绑定并且将返回#'button语法对象，它指的是在阶段等级1的button绑定。但是m的使用是在第0阶段等级，在b的第0阶段等级没有按钮。这就是为什么see-button需要约束在第1阶段等级，就像在原来的a中。那么，在原来的b中，我们有以下绑定：
+
+button     at phase level 0
+see-button at phase level 1
+
+………………………………
