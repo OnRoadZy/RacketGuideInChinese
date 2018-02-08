@@ -1,0 +1,31 @@
+16.2.2 宏转化器程序
+
+任何一个参数的过程都可以是一个宏转换器（macro transformer）。事实证明，语法规则（syntax-rules）表是一个扩展为过程表的宏。例如，如果直接求值syntax-rules表（而不是放在define-syntax表的右侧），结果就是一个过程：
+
+> (syntax-rules () [(nothing) something])
+#<procedure>
+
+可以使用lambda直接编写自己的宏转换器过程，而不是使用syntax-rules。对过程的参数是表示源表的语法对象（syntax object），过程的结果必须是表示替换表的语法对象（syntax object）：
+
+> (define-syntax self-as-string
+    (lambda (stx)
+      (datum->syntax stx
+                     (format "~s" (syntax->datum stx)))))
+> (self-as-string (+ 1 2))
+"(self-as-string (+ 1 2))"
+
+传递给宏转换器的源表表示一个表达式，其中在应用程序位置（即在启动表达式的括号之后）使用其标识符，或者如果它被用作表达式位置而不是应用程序位置，则它本身代表标识符。
+
+> (self-as-string (+ 1 2))
+"(self-as-string (+ 1 2))"
+
+> self-as-string
+"self-as-string"
+
+define-syntax表支持与define的函数一样的快捷语法，因此下面的self-as-string定义等同于显式使用lambda的那个定义：
+
+> (define-syntax (self-as-string stx)
+    (datum->syntax stx
+                   (format "~s" (syntax->datum stx))))
+> (self-as-string (+ 1 2))
+"(self-as-string (+ 1 2))"
