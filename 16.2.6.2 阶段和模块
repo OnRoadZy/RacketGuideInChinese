@@ -114,9 +114,104 @@ eval:1:0: button: unbound identifier;
 
 宏m中的see-button来自于(for-syntax 'a)的导入。为了让宏m运行，它需要在第0阶段有button绑定。那个绑定存在——它通过(require 'a)表明。然而，(require 'a)和(require (for-syntax 'a))是相同模块的不同实例（different instantiation）。第1阶段的see-button按钮仅指第1阶段的button，而不是来自一个不同实例的第0阶段绑定的button，即使来自同一个源模块。
 
-.....................
-这种阶段的水平之间的不匹配的实例可以用语法移相水平的修复。Recall that a syntax object like #'button captures lexical information at all phase levels. 这里的问题是在第1阶段调用按钮，但需要返回一个可以在第0阶段进行评估的语法对象。默认情况下，看到按钮绑定到#按钮在同一阶段。但语法相移的水平，我们可以看到按钮指#按钮在不同的相对相位。在这种情况下，我们使用相移- 1使见1期是指在0期#按钮按钮。（由于相转变发生在每一个层面，它也将看到0期是指#按钮在相位1。按钮）
+这种阶段等级之间的不匹配的实例可以用syntax-shift-phase-level修复。像#'button捕捉词汇信息那样在所有（all）阶段等级重调用语法对象。这里的问题是see-button在第1阶段调用，但需要返回一个可以在第0阶段进行求值的语法对象。默认情况下，see-button在同一阶段绑定到#'button。但通过syntax-shift-phase-level，我们可以使see-button在不同的相对阶段等级适用于#'button。在这种情况下，我们使用一个-1的阶段转移使在阶段1的see-button适用于在0阶段的#'button。（由于阶段转变发生在每一个等级，它也使0阶段的see-button适用于-1阶段的#'button）
 
+注意，syntax-shift-phase-level只创建跨阶段的引用。为了使该引用运行，我们仍然需要在两个阶段实例化我们的模块，以便引用和它的目标具有可用的绑定。因此，在模块'b，我们仍然在阶段0和阶段1导入模块'a——使用(require 'a (for-syntax 'a))——因此我们为see-button的阶段1绑定和为button的一个阶段0绑定。现在宏m就会运行了。
 
+> (module a racket
+    (define button 0)
+    (define see-button (syntax-shift-phase-level #'button -1))
+    (provide see-button))
+> (module b racket
+    (require 'a (for-syntax 'a))
+    (define-syntax (m stx)
+      see-button)
+    (m))
+> (require 'b)
+0
 
-注意，语法转换阶段级只创建跨阶段的引用。为了使该引用工作，我们仍然需要在两个阶段实例化我们的模块，以便引用和它的目标具有可用的绑定。因此，在模块B，我们还进口模块在阶段0和阶段1-using（需要一个（语法”））因此我们看到按钮和一个阶段0结合按钮1期结合。现在宏M会工作。
+顺便问一下，在第0阶段绑定的see-button会发生什么？其#'button绑定也已经转移，但是对阶段-1。由于button本身在-1阶段不受约束，如果我们试图在第0阶段对see-button求值，我们会得到一个错误。换句话说，我们并没有永久地解决我们的不匹配问题——我们只是把它转移到一个不太麻烦的位置。
+
+> (module a racket
+    (define button 0)
+    (define see-button (syntax-shift-phase-level #'button -1))
+    (provide see-button))
+> (module b racket
+    (require 'a (for-syntax 'a))
+    (define-syntax (m stx)
+      see-button)
+    (m))
+> (module b2 racket
+    (require 'a)
+    (eval see-button))
+> (require 'b2)
+button: undefined;
+
+ cannot reference undefined identifier
+
+当宏试图匹配字面绑定时——使用syntax-case或syntax-parse，也可能出现上述不匹配的错误。
+
+> (module x racket
+    (require (for-syntax syntax/parse)
+             (for-template racket/base))
+  
+    (provide (all-defined-out))
+  
+    (define button 0)
+    (define (make) #'button)
+    (define-syntax (process stx)
+      (define-literal-set locals (button))
+      (syntax-parse stx
+        [(_ (n (~literal button))) #'#''ok])))
+> (module y racket
+    (require (for-meta 1 'x)
+             (for-meta 2 'x racket/base))
+  
+    (begin-for-syntax
+      (define-syntax (m stx)
+        (with-syntax ([out (make)])
+          #'(process (0 out)))))
+  
+    (define-syntax (p stx)
+      (m))
+  
+    (p))
+eval:2.0: process: expected the identifier `button'
+
+  at: button
+
+  in: (process (0 button))
+
+在这个例子中，在阶段等级2里make正在y中被使用，它返回的#'button语法对象——指的是button在阶段0的X里的绑定和在阶段等级2的来自(for-meta 2 'x)的y里的绑定。process宏在阶段等级1从(for-meta 1 'x)导入，并且它知道button应该在阶段等级1上绑定。当syntax-parse在process内执行时，它正在寻找在阶段等级1上绑定的button，但它仅看到一个阶段等级2绑定并且不匹配。
+
+为了修正这个例子，我们可以相对于x在阶段等级1提供make，然后在y中的第1阶段等级导入它：
+
+> (module x racket
+    (require (for-syntax syntax/parse)
+             (for-template racket/base))
+  
+    (provide (all-defined-out))
+  
+    (define button 0)
+  
+    (provide (for-syntax make))
+    (define-for-syntax (make) #'button)
+    (define-syntax (process stx)
+      (define-literal-set locals (button))
+      (syntax-parse stx
+        [(_ (n (~literal button))) #'#''ok])))
+> (module y racket
+    (require (for-meta 1 'x)
+             (for-meta 2 racket/base))
+  
+    (begin-for-syntax
+      (define-syntax (m stx)
+        (with-syntax ([out (make)])
+          #'(process (0 out)))))
+  
+    (define-syntax (p stx)
+      (m))
+  
+    (p))
+> (require 'y)
+'ok
