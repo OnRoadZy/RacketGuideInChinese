@@ -1,0 +1,50 @@
+16.2.7 语法污染
+
+一个宏的一个使用可以扩展到一个标识符的使用，该标识符不会从绑定宏的模块中导出。一般来说，这样的标识符不必从扩展表达式中提取出来，并在不同的上下文中使用，因为使用不同上下文中的标识符可能会中断宏模块的不变量。
+
+例如，下面的模块导出一个宏go，它扩展到unchecked-go的使用：
+
+"m.rkt"
+
+#lang racket
+(provide go)
+ 
+(define (unchecked-go n x)
+  ; to avoid disaster, n must be a number
+  (+ n 17))
+ 
+(define-syntax (go stx)
+  (syntax-case stx ()
+   [(_ x)
+    #'(unchecked-go 8 x)]))
+
+如果对unchecked-go的引用从(go 'a)扩展解析，那么它可能会被插入一个新的表达，(unchecked-go #f 'a)，导致灾难。datum->syntax程序同样可用于构建一个导出标识符引用，即使没有宏扩展包括一个对标识符的引用。
+
+为了防止这种滥用的导出标识符，这个宏go必须用syntax-protect明确保护其扩展：
+
+(define-syntax (go stx)
+  (syntax-case stx ()
+   [(_ x)
+    (syntax-protect #'(unchecked-go 8 x))]))
+
+syntax-protect函数会导致从go被污染（tainted）的结果中提取的任何语法对象。宏扩展程序拒绝受污染的标识符，因此试图从(go 'a)的扩展中提取unchecked-go产生一个标识符，该标识符不能用于构造一个新表达式（或者，至少，不是宏扩展程序将接受的表达式）。syntax-rules、syntax-id-rule和define-syntax-rule表自动保护其扩展结果。
+
+更确切地说，syntax-protect配备了一个带一个染料包（dye pack）的语法对象。当一个语法对象被配备时，那么syntax-e在它的结果污染任何语法对象。同样，它的当第一个参数被配备时，datum->syntax污染其结果。最后，如果引用的语法对象的任何部分被配备，则相应的部分将受到所生成的语法常数的影响。
+
+当然，宏扩展本身必须能够解除（disarm）语法对象上的污染，以便它可以进一步扩展表达式或其子表达式。当一个语法对象配备有一个染料包时，染料包装有一个相关的检查者，可以用来解除染料包装。一个(syntax-protect stx)函数调用实际上是一个对(syntax-arm stx #f #t)的简写，这配备stx使用合适的检查程序。在试图扩展或编译它之前，扩展程序使用syntax-disarm并在每个表达式上使用它的检查程序。
+
+与宏扩展程序从语法转换器的输入到其输出的属性（参见《语法对象属性》（Syntax Object Properties））相同，扩展程序将从转换器的输入复制染料包到输出。以前面的例子为基础，
+
+"n.rkt"
+
+#lang racket
+(require "m.rkt")
+ 
+(provide go-more)
+ 
+(define y 'hello)
+ 
+(define-syntax (go-more stx)
+  (syntax-protect #'(go y)))
+
+(go-more)的扩展介绍了一个对在(go y)中的非导出y的引用，以及扩展结果被装备，这样y不能从扩展中提取。即使go没有为其结果使用syntax-protect（可能归根到底是因为它不需要保护unchecked-go），(go y)上的染色包被传播给了最终扩展(unchecked-go 8 y)。宏扩展器使用syntax-rearm从转换程序的输入和输出增殖（propagate）染料包。
