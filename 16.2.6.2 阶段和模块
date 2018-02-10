@@ -63,4 +63,60 @@ see-button at phase level 1
 button     at phase level 0
 see-button at phase level 1
 
-………………………………
+在这个场景中，我们可以在宏中使用see-button，因为在阶段等级1上see-button是绑定的。当宏展开时，它将指向一个在第0阶段等级的button绑定。
+
+用(define see-button #'button)定义see-button本身没有错；它取决于我们打算如何使用see-button。例如，我们可以安排m明智地使用see-button，因为它使用begin-for-syntax将它放在了阶段等级1的上下文中：
+
+> (module a racket
+    (define button 0)
+    (define see-button #'button)
+    (provide see-button))
+> (module b racket
+    (require (for-syntax 'a))
+    (define-syntax (m stx)
+      (with-syntax ([x see-button])
+        #'(begin-for-syntax
+            (displayln x))))
+    (m))
+0
+
+在这种情况下，模块b在阶段等级1上机有button绑定也有see-button绑定。宏的扩展是
+
+(begin-for-syntax
+  (displayln button))
+
+它的工作原理是，因为button在阶段等级1上绑定。
+
+现在，你可以通过在阶段等级0和阶段等级1中导入a来欺骗阶段系统。然后，你将具有以下绑定
+
+button     at phase level 0
+see-button at phase level 0
+button     at phase level 1
+see-button at phase level 1
+
+你可能现在希望宏中的see-button可以工作，但它没有：
+
+> (module a racket
+    (define button 0)
+    (define see-button #'button)
+    (provide see-button))
+> (module b racket
+    (require 'a
+             (for-syntax 'a))
+    (define-syntax (m stx)
+      see-button)
+    (m))
+eval:1:0: button: unbound identifier;
+
+ also, no #%top syntax transformer is bound
+
+  in: button
+
+宏m中的see-button来自于(for-syntax 'a)的导入。为了让宏m运行，它需要在第0阶段有button绑定。那个绑定存在——它通过(require 'a)表明。然而，(require 'a)和(require (for-syntax 'a))是相同模块的不同实例（different instantiation）。第1阶段的see-button按钮仅指第1阶段的button，而不是来自一个不同实例的第0阶段绑定的button，即使来自同一个源模块。
+
+.....................
+这种阶段的水平之间的不匹配的实例可以用语法移相水平的修复。Recall that a syntax object like #'button captures lexical information at all phase levels. 这里的问题是在第1阶段调用按钮，但需要返回一个可以在第0阶段进行评估的语法对象。默认情况下，看到按钮绑定到#按钮在同一阶段。但语法相移的水平，我们可以看到按钮指#按钮在不同的相对相位。在这种情况下，我们使用相移- 1使见1期是指在0期#按钮按钮。（由于相转变发生在每一个层面，它也将看到0期是指#按钮在相位1。按钮）
+
+
+
+注意，语法转换阶段级只创建跨阶段的引用。为了使该引用工作，我们仍然需要在两个阶段实例化我们的模块，以便引用和它的目标具有可用的绑定。因此，在模块B，我们还进口模块在阶段0和阶段1-using（需要一个（语法”））因此我们看到按钮和一个阶段0结合按钮1期结合。现在宏M会工作。
