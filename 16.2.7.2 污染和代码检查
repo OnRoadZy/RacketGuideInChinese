@@ -1,0 +1,48 @@
+16.2.7.2 污染和代码检查
+
+想要获得特权的工具（例如调试转换器）必须在扩展程序中解除染料包的作用。权限是通过代码检查器（code inspector）授予的。每个染料包的记录一个检查器，同时语法对象可以使用使用一个足够强大的检查器解除。
+
+当声明一个模块时，该声明将捕获current-code-inspector参数的当前值。当模块中定义的宏转换器应用syntax-protect时，将使用捕获的检查器。一个工具可以通过提供与一个相同的检查器或模块检查器的超级检查器提供syntax-disarm对结果语法对象予以解除。在将current-code-inspector设置为不太强大的检查器（在加载了受信任的代码，如调试工具，之后），最终会运行不信任代码。
+
+有了这种安排，宏生成宏需要小心些，因为正在生成的宏可以在已经生成的宏中嵌入语法对象，这些已经生成的宏需要正在生成的模块的保护等级，而不是包含已经生成的宏的模块的保护等级。为了避免这个问题，使用模块的声明时间检查器，它是可以作为(variable-reference->module-declaration-inspector (#%variable-reference))访问的，并使用它来定义一个syntax-protect的变体。
+
+例如，假设go宏是通过宏实现的：
+
+#lang racket
+(provide def-go)
+ 
+(define (unchecked-go n x)
+  (+ n 17))
+ 
+(define-syntax (def-go stx)
+  (syntax-case stx ()
+    [(_ go)
+     (protect-syntax
+      #'(define-syntax (go stx)
+          (syntax-case stx ()
+            [(_ x)
+             (protect-syntax #'(unchecked-go 8 x))])))]))
+
+当def-go被用于另一个模块定义go时，并且当go定义模块处于与def-go定义模块不同的保护等级时，生成的protect-syntax的宏使用是不正确的。在unchecked-go在def-go定义模块等级应该被保护，而不是go定义模块。
+
+解决方案是定义和使用go-syntax-protect，而不是：
+
+#lang racket
+(provide def-go)
+ 
+(define (unchecked-go n x)
+  (+ n 17))
+ 
+(define-for-syntax go-syntax-protect
+  (let ([insp (variable-reference->module-declaration-inspector
+               (#%variable-reference))])
+    (lambda (stx) (syntax-arm stx insp))))
+ 
+(define-syntax (def-go stx)
+  (syntax-case stx ()
+    [(_ go)
+     (protect-syntax
+      #'(define-syntax (go stx)
+          (syntax-case stx ()
+           [(_ x)
+            (go-syntax-protect #'(unchecked-go 8 x))])))]))
