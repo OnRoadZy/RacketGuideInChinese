@@ -1,0 +1,31 @@
+16.2.7.1 污染模式
+
+在某些情况下，一个宏执行者有意允许有限的解构的宏结果没有污染结果。例如，给出define-like-y宏，
+
+"q.rkt"
+
+#lang racket
+ 
+(provide define-like-y)
+ 
+(define y 'hello)
+ 
+(define-syntax (define-like-y stx)
+  (syntax-case stx ()
+    [(_ id) (syntax-protect #'(define-values (id) y))]))
+
+也有人可以在内部定义中使用宏：
+
+(let ()
+  (define-like-y x)
+  x)
+
+“q.rkt”模块的执行器最有可能是希望允许define-like-y这样的使用。以转换一个内部定义为letrec绑定，但是通过define-like-y产生的define表必须解构，这通常会污染x的绑定和对y的引用。
+
+相反，对define-like-y的内部使用是允许的，因为syntax-protect特别对待一个以define-values开始的语法列表。在这种情况下，代替装备整个表达式的是，语法列表中的每个元素都被装备，进一步将染料包推到列表的第二个元素中，以便它们被附加到定义的标识符上。因此，在扩展结果(define-values (x) y)中的define-values、x和y分别被装备，同时定义可以被解构以转化为letrec。
+
+就像syntax-protect，通过将染料包推入这个列表元素，这个扩展程序重新装备一个以define-values开始的转换程序结果。作为一个结果，define-like-y已经实施产生(define id y)，它使用define代替define-values。在这种情况下，整个define表首先装备一个染料包，但是一旦define表扩展到define-values，染料包被移动到各个部分。
+
+宏扩展程序以它处理以define-values开始的结果相同的方式处理以define-syntaxes开始的语法列表结果。从begin开始的语法列表结果同样被处理，除了语法列表的第二个元素被当作其它元素一样处理（即，直接元素被装备，而不是它的上下文）。此外，宏扩展程序递归地应用此特殊处理，以防宏生成包含嵌套define-values表的一个begin表。
+
+通过将一个'taint-mode属性（见《语法对象属性》（Syntax Object Properties））附加到宏转换程序的结果语法对象中，可以覆盖染料包的默认应用程序。如果属性值是'opaque，那么语法对象被装备而且不是它的部件。如果属性值是'transparent，则语法对象的部件被装备。如果属性值是'transparent-binding，那么语法对象的部件和第二个部件的子部件（如define-values和define-syntaxes）被装备。'transparent和'transparent-binding模式触发递归属性在部件的检测，这样就可以把装备任意深入地推入到转换程序的结果中。
