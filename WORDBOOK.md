@@ -101,3 +101,4 @@
 - Phase 阶段（作为一个专有词考虑）
 - level 等级
 - Phase level 阶段等级
+- taint 污染
